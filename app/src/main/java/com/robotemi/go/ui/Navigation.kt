@@ -16,9 +16,11 @@
 
 package com.robotemi.go.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,7 +32,7 @@ fun MainNavigation() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "main") {
-        composable("main") { DeliveryScreen(modifier = Modifier.padding(16.dp)) }
+        composable("main") { DeliveryScreen(modifier = Modifier.padding(16.dp).background(Color.LightGray)) }
         // TODO: Add more destinations
     }
 }

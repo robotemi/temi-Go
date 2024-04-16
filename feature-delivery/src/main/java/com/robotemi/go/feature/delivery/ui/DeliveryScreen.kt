@@ -16,20 +16,25 @@
 
 package com.robotemi.go.feature.delivery.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Success
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -41,11 +46,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.robotemi.go.feature.delivery.model.Tray
+import com.robotemi.go.feature.mymodel.R
 
 @Composable
 fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hiltViewModel()) {
@@ -53,13 +63,11 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
     if (items is Success) {
         DeliveryScreen(
             locations = (items as Success).locations,
-            locationSelectable = (items as Success).locationClickable,
             map = (items as Success).tray,
             onSave = { name -> viewModel.addMyModel(name) },
             modifier = modifier,
-            onSelectTray = { isOn -> viewModel.setSelectable(isOn) },
-            onMakePair = { tray: String, location: String -> viewModel.makePair(tray, location) },
-            removePair = {tray -> viewModel.removePair(tray) },
+            onMakePair = { layer: Tray, location: String -> viewModel.setTrayLocation(layer, location) },
+            removePair = { tray -> viewModel.removeTrayLocation(tray) },
             go = { viewModel.go() }
         )
     }
@@ -68,203 +76,185 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
 @Composable
 internal fun DeliveryScreen(
     locations: List<String>,
-    locationSelectable: Boolean,
     onSave: (name: String) -> Unit,
     modifier: Modifier = Modifier,
-    onSelectTray: (isOn: Boolean) -> Unit,
-    onMakePair: (tray: String, location: String) -> Unit,
-    removePair: (tray: String) -> Unit,
-    map: Map<String, String>,
+    onMakePair: (layer: Tray, location: String) -> Unit,
+    removePair: (layer: Tray) -> Unit,
+    map: Map<Tray, String>,
     go: () -> Unit
 ) {
-    var currentSelectedTry by remember { mutableStateOf("") }
-    var isSelectedTray by remember { mutableStateOf(false) }
+    var currentSelectedTray by remember { mutableStateOf(Tray.EMPTY) }
 
     Row {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(.3f)
-        ) {
-            Row {
-                Button(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(300.dp, 300.dp),
-                    onClick = {
-                        if (map.containsKey("top")){
-                            return@Button
-                        } else if (!isSelectedTray) {
-                            currentSelectedTry = "top"
-                            isSelectedTray = true
-                            onSelectTray(true)
-                        } else if (currentSelectedTry == "top") {
-                            currentSelectedTry = ""
-                            isSelectedTray = false
-                            onSelectTray(false)
-                        }
-                    },
-                    colors = if (currentSelectedTry == "top" || map.containsKey("top")) ButtonDefaults.buttonColors(
-                        Color.Green
-                    ) else ButtonDefaults.buttonColors(Color.Black)
-                ) {
-                    Text(
-                        text = if (map.containsKey("top")) map.getValue("top") else "",
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                if(map.containsKey("top")) {
-                    Button(
-                        modifier = Modifier
-                            .size(50.dp, 50.dp)
-                            .border(1.dp, Color.Black),
-                        onClick = {
-                            removePair("top")
-                        },
-                        colors = ButtonDefaults.buttonColors(Color.White)
-                    ) {
-                        Text(
-                            text = "X",
-                            color = Color.Black,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-            Row {
-                Button(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(300.dp, 300.dp),
-                    onClick = {
-                        if (map.containsKey("middle")){
-                            return@Button
-                        } else if (!isSelectedTray) {
-                            currentSelectedTry = "middle"
-                            isSelectedTray = true
-                            onSelectTray(true)
-                        } else if (currentSelectedTry == "middle") {
-                            currentSelectedTry = ""
-                            isSelectedTray = false
-                            onSelectTray(false)
-                        }
-                    },
-                    colors = if (currentSelectedTry == "middle" || map.containsKey("middle")) ButtonDefaults.buttonColors(
-                        Color.Green
-                    ) else ButtonDefaults.buttonColors(Color.Black)
-                ) {
-                    Text(
-                        text = if (map.containsKey("middle")) map.getValue("middle") else "",
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                if(map.containsKey("middle")) {
-                    Button(
-                        modifier = Modifier
-                            .size(50.dp, 50.dp)
-                            .border(1.dp, Color.Black),
-                        onClick = {
-                            removePair("middle")
-                        },
-                        colors = ButtonDefaults.buttonColors(Color.White)
-                    ) {
-                        Text(
-                            text = "X",
-                            color = Color.Black,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-            Row {
-                Button(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(300.dp, 300.dp),
-                    onClick = {
-                        if (map.containsKey("bottom")){
-                            return@Button
-                        } else if (!isSelectedTray) {
-                            currentSelectedTry = "bottom"
-                            isSelectedTray = true
-                            onSelectTray(true)
-                        } else if (currentSelectedTry == "bottom") {
-                            currentSelectedTry = ""
-                            isSelectedTray = false
-                            onSelectTray(false)
-                        }
-                    },
-                    colors = if (currentSelectedTry == "bottom" || map.containsKey("bottom")) ButtonDefaults.buttonColors(
-                        Color.Green
-                    ) else ButtonDefaults.buttonColors(Color.Black)
-                ) {
-                    Text(
-                        text = if (map.containsKey("bottom")) map.getValue("bottom") else "",
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-            if(map.containsKey("bottom")) {
-                Button(
-                    modifier = Modifier
-                        .size(50.dp, 50.dp)
-                        .border(1.dp, Color.Black),
-                    onClick = {
-                        removePair("bottom")
-                    },
-                    colors = ButtonDefaults.buttonColors(Color.White)
-                ) {
-                    Text(
-                        text = "X",
-                        color = Color.Black,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
+        TemiGo(
+            changeTray = { layer -> currentSelectedTray = layer },
+            removePair = { layer -> removePair(layer) },
+            map = map,
+            currentSelectedTray = currentSelectedTray
+        )
 
 
         Column(
             modifier = Modifier.fillMaxHeight()
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier
-                    .background(Color.Gray)
-                    .weight(1f)
-            ) {
-                items(items = locations, key = { location -> location }) { location ->
-                    Button(
-                        modifier = Modifier.padding(8.dp),
-                        colors = if (map.containsValue(location)) ButtonDefaults.buttonColors(Color.Green) else ButtonDefaults.buttonColors(
-                            Color.Black
-                        ),
-                        onClick = {
-                            if (isSelectedTray) {
-                                onMakePair(currentSelectedTry, location)
-                                currentSelectedTry = ""
-                                isSelectedTray = false
-                            }
-                        }) {
-                        Text(text = location)
-                    }
-                }
-            }
+            LocationGrid(
+                locations = locations,
+                onMakePair = onMakePair,
+                currentSelectedTray = currentSelectedTray,
+                map = map,
+                changeTray = { layer -> currentSelectedTray = layer })
 
-            val enabledColor = if (map.isNotEmpty()) Color.Green else Color.Gray
-            Button(
-                modifier = Modifier.align(Alignment.End).width(100.dp).height(100.dp).padding(16.dp),
-                onClick = {
-                    go()
-                },
-                enabled = map.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(enabledColor)) {
-                Text(text = "GO")
+            GoButton(map, go)
+        }
+    }
+}
+
+@Composable
+fun TemiGo(
+    changeTray: (layer: Tray) -> Unit,
+    removePair: (layer: Tray) -> Unit,
+    map: Map<Tray, String>,
+    currentSelectedTray: Tray
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth(.3f)
+    ) {
+        TrayLayer(Tray.TOP, map, changeTray, removePair, currentSelectedTray)
+        TrayLayer(Tray.MIDDLE, map, changeTray, removePair, currentSelectedTray)
+        TrayLayer(Tray.BOTTOM, map, changeTray, removePair, currentSelectedTray)
+    }
+}
+
+@Composable
+fun TrayLayer(
+    layer: Tray,
+    map: Map<Tray, String>,
+    changeTray: (layer: Tray) -> Unit,
+    removePair: (layer: Tray) -> Unit,
+    currentSelectedTray: Tray
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .size(300.dp, 300.dp),
+        onClick = {
+            if (map.containsKey(layer)) {
+                return@Button
+            } else if (currentSelectedTray != layer) {
+                changeTray(layer)
+            } else {
+                changeTray(Tray.EMPTY)
+            }
+        },
+        colors = if (currentSelectedTray == layer || map.containsKey(layer)) ButtonDefaults.buttonColors(
+            Color(0xFF20D199)
+        ) else ButtonDefaults.buttonColors(Color.Black)
+    ) {
+        Text(
+            text = if (map.containsKey(layer)) map.getValue(layer) else "",
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
+    }
+
+    if (map.containsKey(layer)) {
+        Button(
+            modifier = Modifier
+                .size(50.dp, 50.dp)
+                .border(1.dp, Color.Black),
+            onClick = {
+                removePair(layer)
+            },
+            colors = ButtonDefaults.buttonColors(Color.White)
+        ) {
+            Text(
+                text = "X",
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun LocationGrid(
+    locations: List<String>,
+    onMakePair: (layer: Tray, location: String) -> Unit,
+    currentSelectedTray: Tray,
+    map: Map<Tray, String>,
+    changeTray: (layer: Tray) -> Unit,
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(4),
+        modifier = Modifier
+            .offset(0.dp, 150.dp)
+            .background(Color(0xFFF8F8F8))
+            .width(1054.dp)
+            .height(632.dp)
+    ) {
+        items(items = locations, key = { location -> location }) { location ->
+            Box(
+                modifier = Modifier
+                    .width(194.dp)
+                    .height(150.dp)
+                    .padding(24.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        if (map.containsValue(location)) {
+                            Color(
+                                0xFF20D199
+                            )
+                        } else
+                            Color(0xFFBABABA)
+                    )
+                    .clickable {
+                        if (currentSelectedTray != Tray.EMPTY) {
+                            onMakePair(currentSelectedTray, location)
+                            changeTray(Tray.EMPTY)
+                        }
+                    },
+            ) {
+                Text(
+                    text = location,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    fontSize = when (location.length) {
+                        in 1..5 -> 60.sp
+                        in 6..10 -> 40.sp
+                        else -> 30.sp
+                    },
+                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 5.dp)
+                )
             }
         }
+    }
+}
+
+@Composable
+fun GoButton(map: Map<Tray, String>, go: () -> Unit){
+    val enabledColor = if (map.isNotEmpty()) Color(0xFF20D199) else Color(0x7520D199)
+    Row(modifier = Modifier.clickable(onClick = {
+        if (map.isNotEmpty()) {
+            go()
+        }
+    })
+        .offset(x = 850.dp, y = 150.dp),
+        ) {
+        Text(
+            text = "GO",
+            textAlign = TextAlign.Center,
+            fontSize = 100.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(16.dp),
+            color = enabledColor
+        )
+        Image(
+            painter = painterResource(id = R.drawable.go_icon),
+            contentDescription = "GO",
+            modifier = Modifier.align(Alignment.CenterVertically)
+        )
     }
 }
 

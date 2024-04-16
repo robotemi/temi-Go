@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.robotemi.go.core.data.LocationRepository
+import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Error
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Loading
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Success
@@ -66,16 +67,11 @@ class MyModelViewModel @Inject constructor(
         }
     }
 
-    fun setSelectable(isOn: Boolean) {
-        _uiState.update { currentState ->
-            (currentState as Success).copy(locationClickable = isOn)}
-    }
-
-    fun makePair(tray: String, location: String) {
+    fun setTrayLocation(layer: Tray, location: String) {
         _uiState.update { currentState ->
             if (currentState is Success) {
                 val newTray = currentState.tray.toMutableMap()
-                newTray[tray] = location
+                newTray[layer] = location
                 currentState.copy(tray = newTray)
             } else {
                 currentState
@@ -84,11 +80,11 @@ class MyModelViewModel @Inject constructor(
         Log.d("MyModelViewModel", "${(uiState.value as Success).tray}")
     }
 
-    fun removePair(tray: String) {
+    fun removeTrayLocation(layer: Tray) {
         _uiState.update { currentState ->
             if (currentState is Success) {
                 val newTray = currentState.tray.toMutableMap()
-                newTray.remove(tray)
+                newTray.remove(layer)
                 currentState.copy(tray = newTray)
             } else {
                 currentState
@@ -98,9 +94,9 @@ class MyModelViewModel @Inject constructor(
     }
 
     fun go(){
-        val locationTop = (uiState.value as Success).tray["top"]
-        val locationMiddle = (uiState.value as Success).tray["middle"]
-        val locationBottom = (uiState.value as Success).tray["bottom"]
+        val locationTop = (uiState.value as Success).tray[Tray.TOP]
+        val locationMiddle = (uiState.value as Success).tray[Tray.MIDDLE]
+        val locationBottom = (uiState.value as Success).tray[Tray.BOTTOM]
 
         val goList = mutableListOf<String>()
         if (locationTop != null) goList.add(locationTop)
@@ -119,8 +115,7 @@ sealed class DeliveryScreenUiState {
     data class Error(val throwable: Throwable) : DeliveryScreenUiState()
     data class Success(
         val locations: List<String>,
-        var tray: MutableMap<String, String> = mutableMapOf(),
-        var locationClickable: Boolean = false
+        var tray: MutableMap<Tray, String> = mutableMapOf(),
     ) : DeliveryScreenUiState()
 
     data class TrayEdit(
