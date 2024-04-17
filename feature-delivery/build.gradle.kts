@@ -57,6 +57,7 @@ android {
 dependencies {
     implementation(project(":core-data"))
     implementation(project(":core-ui"))
+    implementation (libs.androidx.compose.constraintlayout)
     androidTestImplementation(project(":core-testing"))
 
     // Core Android dependencies
