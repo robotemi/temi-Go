@@ -26,7 +26,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
 
         testInstrumentationRunner = "com.robotemi.go.core.testing.HiltTestRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -58,7 +58,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation(libs.sdk)
+    api(libs.sdk)
 
     // Local tests: jUnit, coroutines, Android runner
     testImplementation(libs.junit)

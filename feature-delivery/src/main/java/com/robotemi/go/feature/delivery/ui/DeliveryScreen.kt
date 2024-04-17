@@ -86,7 +86,7 @@ internal fun DeliveryScreen(
     var currentSelectedTray by remember { mutableStateOf(Tray.EMPTY) }
 
     Row {
-        TemiGo(
+        TemiGoNew(
             changeTray = { layer -> currentSelectedTray = layer },
             removePair = { layer -> removePair(layer) },
             map = map,

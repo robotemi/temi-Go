@@ -37,12 +37,11 @@ class RealLocationRepository @Inject constructor(
     private val myModelDao: MyModelDao
 ) : LocationRepository, OnLocationsUpdatedListener, OnRobotReadyListener {
 
+    private val flow = MutableStateFlow<List<String>>(listOf())
     init {
         Robot.getInstance().addOnRobotReadyListener(this)
         Robot.getInstance().addOnLocationsUpdatedListener(this)
     }
-
-    private val flow = MutableStateFlow<List<String>>(listOf())
 
     override val locations: Flow<List<String>> = flow
 
