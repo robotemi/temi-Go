@@ -2,17 +2,14 @@ package com.robotemi.go.feature.delivery.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -31,15 +27,14 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.robotemi.go.feature.delivery.model.Tray
-import com.robotemi.go.feature.delivery.model.TrayStatus
 import com.robotemi.go.feature.mymodel.R
 
 @Composable
 fun TemiGoNew(
     onSelect: (tray: Tray) -> Unit,
     onCancel: (tray: Tray) -> Unit,
-    map: Map<Tray, String>,
-    currentSelectedTray: Tray?,
+    map: Map<Tray, String?>,
+    currentSelectedTray: Tray?
 ) {
     ConstraintLayout(
         modifier = Modifier
@@ -84,12 +79,10 @@ fun TemiGoNew(
             },
             highlightResource = R.drawable.top_highlight,
             dimResource = R.drawable.top_dim,
-            tray = Tray.TOP,
-            map = map,
-            onSelect = onSelect,
-            onCancel = onCancel,
-            currentSelectedTray = currentSelectedTray,
-            destination = map[Tray.TOP] ?: ""
+            onTrayClicked = { onSelect(Tray.TOP) },
+            onXClicked = { onCancel(Tray.TOP) },
+            destination = map[Tray.TOP],
+            isSelected = currentSelectedTray == Tray.TOP
         )
 
         TrayLayer(
@@ -106,12 +99,10 @@ fun TemiGoNew(
             },
             highlightResource = R.drawable.middle_highlight,
             dimResource = R.drawable.middle_dim,
-            tray = Tray.MIDDLE,
-            map = map,
-            onSelect = onSelect,
-            onCancel = onCancel,
-            currentSelectedTray = currentSelectedTray,
-            destination = map[Tray.MIDDLE] ?: ""
+            onTrayClicked = { onSelect(Tray.MIDDLE) },
+            onXClicked = { onCancel(Tray.MIDDLE) },
+            destination = map[Tray.MIDDLE],
+            isSelected = currentSelectedTray == Tray.MIDDLE
         )
 
         TrayLayer(
@@ -128,12 +119,10 @@ fun TemiGoNew(
             },
             highlightResource = R.drawable.bottom_highlight,
             dimResource = R.drawable.bottom_dim,
-            tray = Tray.BOTTOM,
-            map = map,
-            onSelect = onSelect,
-            onCancel = onCancel,
-            currentSelectedTray = currentSelectedTray,
-            destination = map[Tray.BOTTOM] ?: ""
+            onTrayClicked = { onSelect(Tray.BOTTOM) },
+            onXClicked = { onCancel(Tray.BOTTOM) },
+            destination = map[Tray.BOTTOM],
+            isSelected = currentSelectedTray == Tray.BOTTOM
         )
     }
 
@@ -145,74 +134,40 @@ private fun TrayLayer(
     modifierX: Modifier,
     @DrawableRes highlightResource: Int,
     @DrawableRes dimResource: Int,
-    tray: Tray,
-    map: Map<Tray, String>,
-    onSelect: (tray: Tray) -> Unit,
-    onCancel: (tray: Tray) -> Unit,
-    currentSelectedTray: Tray?,
-    destination: String
+    onTrayClicked: () -> Unit,
+    onXClicked: () -> Unit,
+    destination: String?,
+    isSelected: Boolean = false,
 ) {
     var highlightDebug by remember { mutableStateOf(false) } // FIXME, just for debug
-    var trayStatus by remember { mutableStateOf(TrayStatus.EMPTY) }
 
-    if(destination != ""){
-        trayStatus = TrayStatus.OCCUPIED
-    }
+    val imageResource = if (destination != null || isSelected) highlightResource else dimResource
+
+    val callFunction = if (destination != null) null else onTrayClicked
     Box(
         modifier = modifier.fillMaxWidth()
     ) {
-        if (trayStatus == TrayStatus.EMPTY) {
-            Image(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if(currentSelectedTray != null){
-                            return@clickable
-                        }
-                        highlightDebug = true
-                        trayStatus = TrayStatus.SELECTED
-                        onSelect(tray)
-                    },
-                contentScale = ContentScale.FillWidth,
-                painter = painterResource(id = dimResource),
-                contentDescription = null
-            )
-        }
-    }
-    if (trayStatus == TrayStatus.SELECTED) {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    highlightDebug = false
-                    trayStatus = TrayStatus.EMPTY
-                    onSelect(tray)
+                    callFunction?.invoke()
                 },
             contentScale = ContentScale.FillWidth,
-            painter = painterResource(id = highlightResource),
+            painter = painterResource(imageResource),
             contentDescription = null
         )
-    }
-    if (trayStatus == TrayStatus.OCCUPIED) {
-        Box {
-            Image(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                contentScale = ContentScale.FillWidth,
-                painter = painterResource(id = highlightResource),
-                contentDescription = null
-            )
+        if (destination != null) {
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .width(210.dp)
-                    .height(57.dp)
-                    .offset(y = 10.dp)
+                    .widthIn(max = 210.dp)
+                    .heightIn(max = 57.dp)
             ) {
                 Text(
                     text = destination, color = Color.White,
                     textAlign = TextAlign.Center,
-                    fontSize = when (map.getValue(tray).length) {
+                    fontSize = when (destination.length) {
                         in 1..5 -> 60.sp
                         in 6..10 -> 40.sp
                         else -> 30.sp
@@ -221,35 +176,13 @@ private fun TrayLayer(
             }
         }
     }
-//        if (highlightDebug) {
-//            Image(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable {
-//                        highlightDebug = false
-//                    },
-//                contentScale = ContentScale.FillWidth,
-//                painter = painterResource(id = highlightResource),
-//                contentDescription = null)
-//        } else {
-//            Image(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable {
-//                        highlightDebug = true
-//                        onClick(TrayStatus.SELECTED)
-//
-//                    },
-//                contentScale = ContentScale.FillWidth,
-//                painter = painterResource(id = dimResource),
-//                contentDescription = null)
-//        }
 
-    if (trayStatus == TrayStatus.OCCUPIED) {
-        ButtonX(modifier = modifierX.clickable {
-            trayStatus = TrayStatus.EMPTY
-            onCancel(tray)
-        })
+    if (destination != null) {
+        ButtonX(modifier = modifierX
+            .offset(x = (-10).dp)
+            .clickable {
+                onXClicked()
+            })
     }
 }
 
@@ -262,12 +195,17 @@ private fun ButtonX(modifier: Modifier) {
     )
 }
 
-//
+
 //@Preview(showBackground = true, widthDp = 1706, heightDp = 904)
 //@Composable
 //private fun PortraitPreview() {
 //    MyApplicationTheme {
-//        TemiGoNew(changeTray = {}, removeTrayLocation = {}, map = mapOf(), currentSelectedTray = Tray.EMPTY)
+//        TemiGoNew(changeTray = {},
+//            removeTrayLocation = {},
+//            map = mapOf(),
+//            currentSelectedTray = Tray.EMPTY,
+//            onSelect = {tray -> currentSelectedTray = if(currentSelectedTray != tray) tray else null },
+//            onCancel = {tray -> removeTrayLocation(tray)},)
 //    }
 //}
 //

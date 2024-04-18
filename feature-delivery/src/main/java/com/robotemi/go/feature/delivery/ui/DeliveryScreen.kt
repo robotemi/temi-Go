@@ -47,9 +47,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.robotemi.go.core.ui.MyApplicationTheme
 import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.mymodel.R
 
@@ -60,10 +62,17 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
         DeliveryScreen(
             locations = (items as Success).locations,
             map = (items as Success).tray,
+            currentSelectedTray = (items as Success).currentSelectedTray,
             onSave = { name -> viewModel.addMyModel(name) },
             modifier = modifier,
-            setTrayLocation = { layer: Tray, location: String -> viewModel.setTrayLocation(layer, location) },
+            setTrayLocation = { layer: Tray, location: String ->
+                viewModel.setTrayLocation(
+                    layer,
+                    location
+                )
+            },
             removeTrayLocation = { tray -> viewModel.removeTrayLocation(tray) },
+            setCurrentSelectedTray = {tray -> viewModel.setCurrentSelectedTray(tray)},
             go = { viewModel.go() }
         )
     }
@@ -75,17 +84,25 @@ internal fun DeliveryScreen(
     onSave: (name: String) -> Unit,
     modifier: Modifier = Modifier,
     setTrayLocation: (tray: Tray, location: String) -> Unit,
+    setCurrentSelectedTray: (tray: Tray?) -> Unit,
     removeTrayLocation: (tray: Tray) -> Unit,
-    map: Map<Tray, String>,
+    map: Map<Tray, String?>,
+    currentSelectedTray: Tray?,
     go: () -> Unit
 ) {
-    var currentSelectedTray by remember { mutableStateOf<Tray?>(null) }
-
 
     Row {
         TemiGoNew(
-            onSelect = {tray -> currentSelectedTray = if(currentSelectedTray != tray) tray else null },
-            onCancel = {tray -> removeTrayLocation(tray)},
+            onSelect = { tray ->
+                if (currentSelectedTray == null) {
+                    setCurrentSelectedTray(tray)
+                } else if (currentSelectedTray != tray) {
+                    return@TemiGoNew
+                } else {
+                    setCurrentSelectedTray(null)
+                }
+            },
+            onCancel = { tray -> removeTrayLocation(tray) },
             map = map,
             currentSelectedTray = currentSelectedTray,
         )
@@ -96,12 +113,14 @@ internal fun DeliveryScreen(
         ) {
             LocationGrid(
                 locations = locations,
-                onClick = { location -> currentSelectedTray.let {
-                    if (it != null) {
-                        setTrayLocation(it, location)
-                        currentSelectedTray = null
+                onClick = { location ->
+                    currentSelectedTray.let {
+                        if (it != null) {
+                            setTrayLocation(it, location)
+                            setCurrentSelectedTray(null)
+                        }
                     }
-                } },
+                },
                 map = map,
             )
 
@@ -110,85 +129,16 @@ internal fun DeliveryScreen(
     }
 }
 
-//@Composable
-//fun TemiGo(
-//    changeTray: (layer: Tray) -> Unit,
-//    removeTrayLocation: (layer: Tray) -> Unit,
-//    map: Map<Tray, String>,
-//    currentSelectedTray: Tray
-//) {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxHeight()
-//            .fillMaxWidth(.3f)
-//    ) {
-//        TrayLayer(Tray.TOP, map, changeTray, removeTrayLocation, currentSelectedTray)
-//        TrayLayer(Tray.MIDDLE, map, changeTray, removeTrayLocation, currentSelectedTray)
-//        TrayLayer(Tray.BOTTOM, map, changeTray, removeTrayLocation, currentSelectedTray)
-//    }
-//}
-
-//@Composable
-//fun TrayLayer(
-//    layer: Tray,
-//    map: Map<Tray, String>,
-//    changeTray: (layer: Tray) -> Unit,
-//    removeTrayLocation: (layer: Tray) -> Unit,
-//    currentSelectedTray: Tray
-//) {
-//    Button(
-//        modifier = Modifier
-//            .padding(8.dp)
-//            .size(300.dp, 300.dp),
-//        onClick = {
-//            if (map.containsKey(layer)) {
-//                return@Button
-//            } else if (currentSelectedTray != layer) {
-//                changeTray(layer)
-//            } else {
-//                changeTray(Tray.EMPTY)
-//            }
-//        },
-//        colors = if (currentSelectedTray == layer || map.containsKey(layer)) ButtonDefaults.buttonColors(
-//            Color(0xFF20D199)
-//        ) else ButtonDefaults.buttonColors(Color.Black)
-//    ) {
-//        Text(
-//            text = if (map.containsKey(layer)) map.getValue(layer) else "",
-//            color = Color.White,
-//            textAlign = TextAlign.Center
-//        )
-//    }
-//
-//    if (map.containsKey(layer)) {
-//        Button(
-//            modifier = Modifier
-//                .size(50.dp, 50.dp)
-//                .border(1.dp, Color.Black),
-//            onClick = {
-//                removeTrayLocation(layer)
-//            },
-//            colors = ButtonDefaults.buttonColors(Color.White)
-//        ) {
-//            Text(
-//                text = "X",
-//                color = Color.Black,
-//                textAlign = TextAlign.Center
-//            )
-//        }
-//    }
-//}
-
 @Composable
 fun LocationGrid(
     locations: List<String>,
     onClick: (location: String) -> Unit,
-    map: Map<Tray, String>
+    map: Map<Tray, String?>
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         modifier = Modifier
-            .offset(100.dp, 150.dp)
+            .offset(y = 150.dp)
             .background(Color(0xFFF8F8F8))
             .width(1054.dp)
             .height(632.dp)
@@ -223,7 +173,9 @@ fun LocationGrid(
                         in 6..10 -> 40.sp
                         else -> 30.sp
                     },
-                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 5.dp)
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 5.dp)
                 )
             }
         }
@@ -231,15 +183,17 @@ fun LocationGrid(
 }
 
 @Composable
-fun GoButton(map: Map<Tray, String>, go: () -> Unit){
+fun GoButton(map: Map<Tray, String?>, go: () -> Unit) {
     val enabledColor = if (map.isNotEmpty()) Color(0xFF20D199) else Color(0x7520D199)
-    Row(modifier = Modifier.clickable(onClick = {
-        if (map.isNotEmpty()) {
-            go()
-        }
-    })
-        .offset(x = 1000.dp, y = 150.dp),
-        ) {
+    Row(
+        modifier = Modifier
+            .offset(x = 900.dp, y = 150.dp)
+            .clickable(onClick = {
+                if (map.isNotEmpty()) {
+                    go()
+                }
+            })
+    ) {
         Text(
             text = "GO",
             textAlign = TextAlign.Center,
@@ -258,12 +212,12 @@ fun GoButton(map: Map<Tray, String>, go: () -> Unit){
 
 
 // Preview
-//    @Preview(showBackground = true, widthDp = 1706, heightDp = 904)
-//    @Composable
-//    private fun PortraitPreview() {
-//        MyApplicationTheme {
-//            DeliveryScreen(
-//                listOf("1", "Bar", "3", "4", "5", "6", "7", "8", "9", "Dining"),
-//                onSave = {})
-//        }
+//@Preview(showBackground = true, widthDp = 1706, heightDp = 904)
+//@Composable
+//private fun PortraitPreview() {
+//    MyApplicationTheme {
+//        DeliveryScreen(
+//            listOf("1", "Bar", "3", "4", "5", "6", "7", "8", "9", "Dining"),
+//            onSave = {})
 //    }
+//}
