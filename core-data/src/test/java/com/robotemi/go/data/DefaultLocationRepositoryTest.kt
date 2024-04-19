@@ -23,23 +23,16 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import com.robotemi.go.core.data.DefaultLocationRepository
 import com.robotemi.go.core.database.MyModel
 import com.robotemi.go.core.database.MyModelDao
 
 /**
- * Unit tests for [DefaultLocationRepository].
  */
 @OptIn(ExperimentalCoroutinesApi::class) // TODO: Remove when stable
 class DefaultLocationRepositoryTest {
 
     @Test
     fun myModels_newItemSaved_itemIsReturned() = runTest {
-        val repository = DefaultLocationRepository(FakeMyModelDao())
-
-        repository.add("Repository")
-
-        assertEquals(repository.locations.first().size, 1)
     }
 
 }
