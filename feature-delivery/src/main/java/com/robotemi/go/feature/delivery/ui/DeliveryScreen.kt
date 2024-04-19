@@ -17,11 +17,9 @@
 package com.robotemi.go.feature.delivery.ui
 
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -34,6 +32,8 @@ import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Success
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -46,15 +46,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -68,6 +67,7 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
     val items by viewModel.uiState.collectAsState()
     if (items is Success) {
         DeliveryScreen(
+            modifier = modifier,
             locations = (items as Success).locations,
             map = (items as Success).tray,
             currentSelectedTray = (items as Success).currentSelectedTray,
@@ -85,6 +85,7 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
 
 @Composable
 internal fun DeliveryScreen(
+    modifier: Modifier,
     locations: List<String>,
     setTrayLocation: (location: String) -> Unit,
     setCurrentSelectedTray: (tray: Tray?) -> Unit,
@@ -95,7 +96,7 @@ internal fun DeliveryScreen(
 ) {
 
     Row {
-        TemiGoNew(
+        TemiGo(
             onSelect = setCurrentSelectedTray,
             onCancel = removeTrayLocation,
             map = map,
@@ -103,16 +104,14 @@ internal fun DeliveryScreen(
         )
 
 
-        Column(
-            modifier = Modifier.fillMaxHeight()
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             LocationGrid(
                 locations = locations,
                 onClick = setTrayLocation,
-                map = map,
+                map = map
             )
 
-            GoButton(map.isNotEmpty(), go)
+            GoButton(modifier = modifier.align(Alignment.End), enable = map.isNotEmpty(), go = go)
         }
     }
 }
@@ -121,17 +120,18 @@ internal fun DeliveryScreen(
 fun LocationGrid(
     locations: List<String>,
     onClick: (location: String) -> Unit,
-    map: Map<Tray, String?>
+    map: Map<Tray, String?>,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         modifier = Modifier
-            .offset(y = 150.dp)
+            .padding(top = 150.dp)
             .background(Color(0xFFF8F8F8))
-            .width(1054.dp)
-            .height(632.dp)
+            .fillMaxWidth(0.9f)
+            .fillMaxHeight(0.75f),
     ) {
         items(items = locations, key = { location -> location }) { location ->
+            val isSelected = map.containsValue(location)
             Box(
                 modifier = Modifier
                     .width(194.dp)
@@ -139,7 +139,7 @@ fun LocationGrid(
                     .padding(24.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
-                        if (map.containsValue(location)) {
+                        if (isSelected) {
                             Color(
                                 0xFF20D199
                             )
@@ -147,7 +147,7 @@ fun LocationGrid(
                             Color(0xFFBABABA)
                     )
                     .clickable {
-                        if (!map.containsValue(location)) {
+                        if (!isSelected) {
                             onClick(location)
                         }
                     },
@@ -171,7 +171,7 @@ fun LocationGrid(
 }
 
 @Composable
-fun GoButton(enable: Boolean, go: () -> Unit) {
+fun GoButton(modifier: Modifier, enable: Boolean, go: () -> Unit) {
     val enabledColor = if (enable) Color(0xFF20D199) else Color(0x7520D199)
     val infiniteTransition = rememberInfiniteTransition(label = "Go Button")
     val animationValue by infiniteTransition.animateValue(
@@ -187,16 +187,18 @@ fun GoButton(enable: Boolean, go: () -> Unit) {
     val offSet = if (enable) animationValue else 0f
 
     Row(
-        modifier = Modifier
-            .offset(x = 900.dp, y = 150.dp)
+        modifier = modifier
             .clickable(onClick = {
                 if (enable) {
                     go()
                 }
-            })
+            }
+            )
+            .background(Color(0xFFEDEDED))
+            .padding(end = 50.dp)
     ) {
         Text(
-            text = "GO",
+            text = stringResource(R.string.go),
             textAlign = TextAlign.Center,
             fontSize = 100.sp,
             fontWeight = FontWeight.Bold,
@@ -212,7 +214,7 @@ fun GoButton(enable: Boolean, go: () -> Unit) {
                 .background(enabledColor)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
+                painter = painterResource(id = R.drawable.go_button_arrow),
                 contentDescription = null,
                 modifier = Modifier
                     .offset(x = offSet.dp)

@@ -30,7 +30,7 @@ import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.mymodel.R
 
 @Composable
-fun TemiGoNew(
+fun TemiGo(
     onSelect: (tray: Tray) -> Unit,
     onCancel: (tray: Tray) -> Unit,
     map: Map<Tray, String?>,
@@ -139,19 +139,18 @@ private fun TrayLayer(
     destination: String?,
     isSelected: Boolean = false,
 ) {
-    var highlightDebug by remember { mutableStateOf(false) } // FIXME, just for debug
 
     val imageResource = if (destination != null || isSelected) highlightResource else dimResource
 
-    val callFunction = if (destination != null) null else onTrayClicked
+
     Box(
         modifier = modifier.fillMaxWidth()
     ) {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    callFunction?.invoke()
+                .clickable(enabled = destination == null) {
+                    onTrayClicked()
                 },
             contentScale = ContentScale.FillWidth,
             painter = painterResource(imageResource),
