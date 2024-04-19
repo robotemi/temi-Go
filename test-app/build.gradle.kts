@@ -27,7 +27,7 @@ android {
     targetProjectPath = ":app"
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
         targetSdk = 34
 
         testInstrumentationRunner = "com.robotemi.go.core.testing.HiltTestRunner"
