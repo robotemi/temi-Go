@@ -72,7 +72,7 @@ class MyModelViewModel @Inject constructor(
             if (currentState is Success && currentState.currentSelectedTray != null) {
                 val newTray = currentState.tray.toMutableMap()
                 newTray[currentState.currentSelectedTray!!] = location
-                currentState.copy(tray = newTray)
+                currentState.copy(tray = newTray, currentSelectedTray = null)
             } else {
                 currentState
             }

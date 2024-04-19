@@ -17,6 +17,15 @@
 package com.robotemi.go.feature.delivery.ui
 
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateValue
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,15 +37,19 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,7 +77,7 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
                 )
             },
             removeTrayLocation = { tray -> viewModel.removeTrayLocation(tray) },
-            setCurrentSelectedTray = {tray -> viewModel.setCurrentSelectedTray(tray)},
+            setCurrentSelectedTray = { tray -> viewModel.setCurrentSelectedTray(tray) },
             go = { viewModel.go() }
         )
     }
@@ -83,8 +96,8 @@ internal fun DeliveryScreen(
 
     Row {
         TemiGoNew(
-            onSelect = { setCurrentSelectedTray(it) },
-            onCancel = { tray -> removeTrayLocation(tray) },
+            onSelect = setCurrentSelectedTray,
+            onCancel = removeTrayLocation,
             map = map,
             currentSelectedTray = currentSelectedTray,
         )
@@ -95,14 +108,11 @@ internal fun DeliveryScreen(
         ) {
             LocationGrid(
                 locations = locations,
-                onClick = { location ->
-                            setTrayLocation(location)
-                            setCurrentSelectedTray(null)
-                },
+                onClick = setTrayLocation,
                 map = map,
             )
 
-            GoButton(map, go)
+            GoButton(map.isNotEmpty(), go)
         }
     }
 }
@@ -161,13 +171,26 @@ fun LocationGrid(
 }
 
 @Composable
-fun GoButton(map: Map<Tray, String?>, go: () -> Unit) {
-    val enabledColor = if (map.isNotEmpty()) Color(0xFF20D199) else Color(0x7520D199)
+fun GoButton(enable: Boolean, go: () -> Unit) {
+    val enabledColor = if (enable) Color(0xFF20D199) else Color(0x7520D199)
+    val infiniteTransition = rememberInfiniteTransition(label = "Go Button")
+    val animationValue by infiniteTransition.animateValue(
+        initialValue = -5f,
+        targetValue = 5f,
+        typeConverter = Float.VectorConverter,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "Go Button"
+    )
+
+    val offSet = if (enable) animationValue else 0f
+
     Row(
         modifier = Modifier
             .offset(x = 900.dp, y = 150.dp)
             .clickable(onClick = {
-                if (map.isNotEmpty()) {
+                if (enable) {
                     go()
                 }
             })
@@ -180,11 +203,23 @@ fun GoButton(map: Map<Tray, String?>, go: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             color = enabledColor
         )
-        Image(
-            painter = painterResource(id = R.drawable.go_icon),
-            contentDescription = "GO",
-            modifier = Modifier.align(Alignment.CenterVertically)
-        )
+        Box(
+            modifier = Modifier
+                .width(100.dp)
+                .height(100.dp)
+                .align(Alignment.CenterVertically)
+                .clip(CircleShape)
+                .background(enabledColor)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
+                contentDescription = null,
+                modifier = Modifier
+                    .offset(x = offSet.dp)
+                    .size(50.dp)
+                    .align(Alignment.Center)
+            )
+        }
     }
 }
 
