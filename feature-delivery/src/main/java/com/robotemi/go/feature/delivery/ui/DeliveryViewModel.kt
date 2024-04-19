@@ -67,11 +67,11 @@ class MyModelViewModel @Inject constructor(
         }
     }
 
-    fun setTrayLocation(layer: Tray, location: String?) {
+    fun setTrayLocation(location: String) {
         _uiState.update { currentState ->
-            if (currentState is Success) {
+            if (currentState is Success && currentState.currentSelectedTray != null) {
                 val newTray = currentState.tray.toMutableMap()
-                newTray[layer] = location
+                newTray[currentState.currentSelectedTray!!] = location
                 currentState.copy(tray = newTray)
             } else {
                 currentState
@@ -80,11 +80,11 @@ class MyModelViewModel @Inject constructor(
         Log.d("MyModelViewModel", "${(uiState.value as Success).tray}")
     }
 
-    fun removeTrayLocation(layer: Tray) {
+    fun removeTrayLocation(tray: Tray) {
         _uiState.update { currentState ->
             if (currentState is Success) {
                 val newTray = currentState.tray.toMutableMap()
-                newTray.remove(layer)
+                newTray.remove(tray)
                 currentState.copy(tray = newTray)
             } else {
                 currentState
@@ -96,7 +96,7 @@ class MyModelViewModel @Inject constructor(
     fun setCurrentSelectedTray(tray: Tray?){
         _uiState.update { currentState ->
             if (currentState is Success) {
-                currentState.copy(currentSelectedTray = tray)
+                currentState.copy(currentSelectedTray = if (currentState.currentSelectedTray == tray) null else tray)
             } else {
                 currentState
             }
@@ -127,10 +127,6 @@ sealed class DeliveryScreenUiState {
         val locations: List<String>,
         var tray: MutableMap<Tray, String?> = mutableMapOf(),
         var currentSelectedTray: Tray? = null
-    ) : DeliveryScreenUiState()
-
-    data class TrayEdit(
-        val tray: String
     ) : DeliveryScreenUiState()
 }
 

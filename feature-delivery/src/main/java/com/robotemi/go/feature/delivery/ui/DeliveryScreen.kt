@@ -16,7 +16,7 @@
 
 package com.robotemi.go.feature.delivery.ui
 
-import android.util.Log
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,9 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,11 +44,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.robotemi.go.core.ui.MyApplicationTheme
 import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.mymodel.R
 
@@ -63,11 +58,8 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
             locations = (items as Success).locations,
             map = (items as Success).tray,
             currentSelectedTray = (items as Success).currentSelectedTray,
-            onSave = { name -> viewModel.addMyModel(name) },
-            modifier = modifier,
-            setTrayLocation = { layer: Tray, location: String ->
+            setTrayLocation = { location: String ->
                 viewModel.setTrayLocation(
-                    layer,
                     location
                 )
             },
@@ -81,9 +73,7 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = 
 @Composable
 internal fun DeliveryScreen(
     locations: List<String>,
-    onSave: (name: String) -> Unit,
-    modifier: Modifier = Modifier,
-    setTrayLocation: (tray: Tray, location: String) -> Unit,
+    setTrayLocation: (location: String) -> Unit,
     setCurrentSelectedTray: (tray: Tray?) -> Unit,
     removeTrayLocation: (tray: Tray) -> Unit,
     map: Map<Tray, String?>,
@@ -93,15 +83,7 @@ internal fun DeliveryScreen(
 
     Row {
         TemiGoNew(
-            onSelect = { tray ->
-                if (currentSelectedTray == null) {
-                    setCurrentSelectedTray(tray)
-                } else if (currentSelectedTray != tray) {
-                    return@TemiGoNew
-                } else {
-                    setCurrentSelectedTray(null)
-                }
-            },
+            onSelect = { setCurrentSelectedTray(it) },
             onCancel = { tray -> removeTrayLocation(tray) },
             map = map,
             currentSelectedTray = currentSelectedTray,
@@ -114,12 +96,8 @@ internal fun DeliveryScreen(
             LocationGrid(
                 locations = locations,
                 onClick = { location ->
-                    currentSelectedTray.let {
-                        if (it != null) {
-                            setTrayLocation(it, location)
+                            setTrayLocation(location)
                             setCurrentSelectedTray(null)
-                        }
-                    }
                 },
                 map = map,
             )
