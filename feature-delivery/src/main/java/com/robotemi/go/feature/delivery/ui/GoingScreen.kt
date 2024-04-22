@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,25 +27,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.input.key.Key.Companion.I
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.robotemi.go.feature.mymodel.R
+
+private val gradientColors = listOf(Color(0xFF20D199), Color.White, Color(0xFF20D199))
+
+private var text = "Text"
 
 @Composable
 fun GoingScreen(modifier: Modifier = Modifier, viewModel: GoingViewModel = hiltViewModel()) {
@@ -57,15 +60,17 @@ fun GoingScreen(modifier: Modifier = Modifier, viewModel: GoingViewModel = hiltV
 internal fun GoingScreen(
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier.fillMaxSize()){
+    Column(modifier.fillMaxSize()) {
         Destination(
             modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(top = 100.dp))
+                .padding(top = 150.dp)
+        )
         PauseButton(
             modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(20.dp))
+                .padding(20.dp)
+        )
     }
 }
 
@@ -77,70 +82,99 @@ fun Destination(
         modifier
             .fillMaxWidth(0.6f)
             .fillMaxHeight(0.6f)
-            .clip(RoundedCornerShape(16.dp))
+            .drawAnimatedBorder(
+                strokeWidth = 8.dp,
+                shape = RoundedCornerShape(18.dp),
+                durationMillis = 1500)
             .background(Color.White)
-            .drawRainbowBorder(16.dp, 1500)){
-        Text(text = "1", modifier = Modifier.align(Alignment.Center), color = Color(0xFF20D199), fontSize = 400.sp, fontWeight = FontWeight.Bold)
+            .padding(12.dp)){
+        Text(
+            text = text,
+            modifier = Modifier.align(Alignment.Center).padding(30.dp),
+            color = Color(0xFF20D199),
+            fontSize = when(text.length){
+                in 1..5 -> 400.sp
+                in 6..10 -> 200.sp
+                else -> 100.sp
+            },
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Composable
 fun PauseButton(modifier: Modifier = Modifier) {
     Row(modifier = modifier.clickable { /*TODO*/ }) {
-        Text(text = "PAUSE", fontWeight = FontWeight.Bold, color = Color(0xFF4A4A4A), fontSize = 70.sp, modifier = modifier.padding(10.dp))
-        Image(painter = painterResource(id = R.drawable.pause), contentDescription = "pause", modifier.width(70.dp).height(70.dp).align(Alignment.CenterVertically))
+        Text(
+            text = "PAUSE",
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF4A4A4A),
+            fontSize = 70.sp,
+            modifier = modifier.padding(10.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.pause),
+            contentDescription = "pause",
+            modifier
+                .width(70.dp)
+                .height(70.dp)
+                .align(Alignment.CenterVertically)
+        )
     }
 }
 
-fun Modifier.drawRainbowBorder(
+fun Modifier.drawAnimatedBorder(
     strokeWidth: Dp,
+    shape: Shape,
+    brush: (Size) -> Brush = {
+        Brush.sweepGradient(gradientColors)
+    },
     durationMillis: Int
-) = this.composed {
+) = composed {
 
-    val infiniteTransition = rememberInfiniteTransition(label = "border")
+    val infiniteTransition = rememberInfiniteTransition(label = "rotation")
     val angle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
-        ), label = "border"
+        ), label = "rotation"
     )
 
-    val brush = Brush.sweepGradient(listOf(Color.White, Color(0xFF20D199)))
+    Modifier
+        .clip(shape)
+        .drawWithCache {
+            val strokeWidthPx = strokeWidth.toPx()
 
-    this.drawWithContent {
+            val outline: Outline = shape.createOutline(size, layoutDirection, this)
 
-        val strokeWidthPx = strokeWidth.toPx()
-        val width = size.width
-        val height = size.height
+            val pathBounds = outline.bounds
 
-        drawContent()
+            onDrawWithContent {
+                drawContent()
 
-        with(drawContext.canvas.nativeCanvas) {
-            val checkPoint = saveLayer(null, null)
+                with(drawContext.canvas.nativeCanvas) {
+                    val checkPoint = saveLayer(null, null)
 
-            // Destination
-            drawRect(
-                color = Color.Gray,
-                topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
-                size = Size(width - strokeWidthPx, height - strokeWidthPx),
-                style = Stroke(strokeWidthPx)
-            )
+                    drawOutline(
+                        outline = outline,
+                        color = Color.Gray,
+                        style = Stroke(strokeWidthPx * 2)
+                    )
 
-            // Source
-            rotate(angle) {
+                    rotate(angle) {
 
-                drawCircle(
-                    brush = brush,
-                    radius = size.width,
-                    blendMode = BlendMode.SrcIn,
-                )
+                        drawCircle(
+                            brush = brush(size),
+                            radius = size.width,
+                            blendMode = BlendMode.SrcIn,
+                        )
+                    }
+                    restoreToCount(checkPoint)
+                }
             }
-
-            restoreToCount(checkPoint)
         }
-    }
 }
 
 @Preview
