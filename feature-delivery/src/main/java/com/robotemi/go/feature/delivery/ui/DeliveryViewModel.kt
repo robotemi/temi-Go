@@ -42,7 +42,7 @@ class DeliveryViewModel @Inject constructor(
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 
-    private val robot = Robot.getInstance()
+    private val robot by lazy { Robot.getInstance() }
 
     private val _uiStateInternal: StateFlow<DeliveryScreenUiState> = locationRepository
         .locations.map<List<String>, DeliveryScreenUiState> { Success(locations = it) }
@@ -58,12 +58,6 @@ class DeliveryViewModel @Inject constructor(
             _uiStateInternal.collect {
                 _uiState.emit(it)
             }
-        }
-    }
-
-    fun addMyModel(name: String) {
-        viewModelScope.launch {
-            locationRepository.add(name)
         }
     }
 
