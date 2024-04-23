@@ -26,13 +26,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.robotemi.go.feature.delivery.ui.DeliveryScreen
+import com.robotemi.go.feature.delivery.ui.GoingScreen
 
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "main") {
-        composable("main") { DeliveryScreen(modifier = Modifier.padding(16.dp).background(Color.LightGray)) }
+        composable("main") { GoingScreen() }
         // TODO: Add more destinations
+
     }
 }

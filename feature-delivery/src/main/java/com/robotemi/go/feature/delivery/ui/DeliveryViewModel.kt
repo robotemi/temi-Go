@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-class MyModelViewModel @Inject constructor(
+class DeliveryViewModel @Inject constructor(
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 

@@ -63,7 +63,7 @@ import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.mymodel.R
 
 @Composable
-fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hiltViewModel()) {
+fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: DeliveryViewModel = hiltViewModel()) {
     val items by viewModel.uiState.collectAsState()
     if (items is Success) {
         DeliveryScreen(

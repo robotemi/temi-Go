@@ -26,7 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import com.robotemi.go.core.data.LocationRepository
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState
-import com.robotemi.go.feature.delivery.ui.MyModelViewModel
+import com.robotemi.go.feature.delivery.ui.DeliveryViewModel
 
 /**
  * Example local unit test, which will execute on the development machine (host).
