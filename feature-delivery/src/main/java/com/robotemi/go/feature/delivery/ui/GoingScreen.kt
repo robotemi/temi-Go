@@ -90,7 +90,7 @@ fun Destination(
             .padding(12.dp)){
         Text(
             text = text,
-            modifier = Modifier.align(Alignment.Center).padding(30.dp),
+            modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp).align(Alignment.Center),
             color = Color(0xFF20D199),
             fontSize = when(text.length){
                 in 1..5 -> 400.sp
