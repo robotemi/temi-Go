@@ -31,18 +31,18 @@ import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Error
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Loading
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Success
-import com.robotemi.sdk.Robot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-class DeliveryViewModel @Inject constructor(
+class IdleViewModel @Inject constructor(
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 
-    private val robot = Robot.getInstance()
+    var goToLocation = ""
+
 
     private val _uiStateInternal: StateFlow<DeliveryScreenUiState> = locationRepository
         .locations.map<List<String>, DeliveryScreenUiState> { Success(locations = it) }
@@ -103,19 +103,26 @@ class DeliveryViewModel @Inject constructor(
         }
     }
 
-    fun go(){
+    fun setGoToLocation(){
         val locationTop = (uiState.value as Success).tray[Tray.TOP]
         val locationMiddle = (uiState.value as Success).tray[Tray.MIDDLE]
         val locationBottom = (uiState.value as Success).tray[Tray.BOTTOM]
 
-        val goList = mutableListOf<String>()
-        if (locationTop != null) goList.add(locationTop)
-        if (locationMiddle != null) goList.add(locationMiddle)
-        if (locationBottom != null) goList.add(locationBottom)
+        if (locationTop != null){
+            goToLocation = locationTop
+            return
+        }
 
-        Log.d("MyModelViewModel", "goList: $goList")
+        if (locationMiddle != null){
+            goToLocation = locationMiddle
+            return
+        }
 
-        robot.goTo(goList[0])
+        if (locationBottom != null){
+            goToLocation = locationBottom
+            return
+        }
+
     }
 
 }
@@ -126,7 +133,7 @@ sealed class DeliveryScreenUiState {
     data class Success(
         val locations: List<String>,
         var tray: MutableMap<Tray, String?> = mutableMapOf(),
-        var currentSelectedTray: Tray? = null
+        var currentSelectedTray: Tray? = null,
     ) : DeliveryScreenUiState()
 }
 
