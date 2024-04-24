@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,31 +41,35 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.robotemi.go.feature.mymodel.R
 
 private val gradientColors = listOf(Color(0xFF20D199), Color.White, Color(0xFF20D199))
 
-private var text = "Text"
-
 @Composable
-fun GoingScreen(modifier: Modifier = Modifier, viewModel: GoingViewModel = hiltViewModel()) {
-    GoingScreen(modifier)
+fun GoingScreen(modifier: Modifier = Modifier, viewModel: GoingViewModel = hiltViewModel(), navController: NavController) {
+    val back = viewModel.back.collectAsState()
+    if (back.value) {
+        navController.popBackStack("idle", false)
+    }
+    GoingScreen(modifier, viewModel.location)
 }
 
 @Composable
 internal fun GoingScreen(
     modifier: Modifier = Modifier,
+    location: String
 ) {
     Column(modifier.fillMaxSize()) {
         Destination(
             modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(top = 150.dp)
+                .padding(top = 150.dp),
+            location
         )
         PauseButton(
             modifier
@@ -76,7 +81,8 @@ internal fun GoingScreen(
 
 @Composable
 fun Destination(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    location: String
 ) {
     Box(
         modifier
@@ -89,18 +95,19 @@ fun Destination(
             .background(Color.White)
             .padding(12.dp)){
         Text(
-            text = text,
+            text = location,
             modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp).align(Alignment.Center),
             color = Color(0xFF20D199),
-            fontSize = when(text.length){
+            fontSize = when(location.length){
                 in 1..5 -> 400.sp
-                in 6..10 -> 200.sp
+                in 6..10 -> 150.sp
                 else -> 100.sp
             },
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
     }
 }
+
 
 @Composable
 fun PauseButton(modifier: Modifier = Modifier) {
@@ -149,8 +156,6 @@ fun Modifier.drawAnimatedBorder(
 
             val outline: Outline = shape.createOutline(size, layoutDirection, this)
 
-            val pathBounds = outline.bounds
-
             onDrawWithContent {
                 drawContent()
 
@@ -177,14 +182,14 @@ fun Modifier.drawAnimatedBorder(
         }
 }
 
-@Preview
-@Composable
-fun DestinationPreview() {
-    Destination()
-}
-
-@Preview
-@Composable
-fun PauseButtonPreview() {
-    PauseButton()
-}
+//@Preview
+//@Composable
+//fun DestinationPreview() {
+//    Destination()
+//}
+//
+//@Preview
+//@Composable
+//fun PauseButtonPreview() {
+//    PauseButton()
+//}

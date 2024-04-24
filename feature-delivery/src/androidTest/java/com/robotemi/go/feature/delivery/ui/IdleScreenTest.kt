@@ -25,10 +25,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * UI tests for [DeliveryScreen].
+ * UI tests for [IdleScreen].
  */
 @RunWith(AndroidJUnit4::class)
-class DeliveryScreenTest {
+class IdleScreenTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
@@ -36,7 +36,7 @@ class DeliveryScreenTest {
     @Before
     fun setup() {
         composeTestRule.setContent {
-            DeliveryScreen()
+            IdleScreen()
         }
     }
     @Test

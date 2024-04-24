@@ -16,25 +16,34 @@
 
 package com.robotemi.go.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.padding
+
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.robotemi.go.feature.delivery.ui.DeliveryScreen
+import androidx.navigation.navArgument
+import com.robotemi.go.feature.delivery.ui.IdleScreen
 import com.robotemi.go.feature.delivery.ui.GoingScreen
 
 @Composable
 fun MainNavigation() {
+
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "main") {
-        composable("main") { GoingScreen() }
+    NavHost(navController = navController, startDestination = "idle") {
+        composable("idle") {
+            BackHandler(true) {
+            }
+            IdleScreen(navController = navController)
+        }
         // TODO: Add more destinations
+        composable(
+            "going/{location}",
+            arguments = listOf(navArgument("location") { type = NavType.StringType })
+        ) { GoingScreen(navController = navController) }
+
 
     }
 }

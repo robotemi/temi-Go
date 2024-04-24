@@ -17,6 +17,7 @@
 package com.robotemi.go.feature.delivery.ui
 
 
+import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.VectorConverter
@@ -59,14 +60,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.mymodel.R
 
+
 @Composable
-fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: DeliveryViewModel = hiltViewModel()) {
+fun IdleScreen(modifier: Modifier = Modifier, viewModel: IdleViewModel = hiltViewModel(), navController: NavController) {
     val items by viewModel.uiState.collectAsState()
+
     if (items is Success) {
-        DeliveryScreen(
+        IdleScreen(
             modifier = modifier,
             locations = (items as Success).locations,
             map = (items as Success).tray,
@@ -78,13 +82,17 @@ fun DeliveryScreen(modifier: Modifier = Modifier, viewModel: DeliveryViewModel =
             },
             removeTrayLocation = { tray -> viewModel.removeTrayLocation(tray) },
             setCurrentSelectedTray = { tray -> viewModel.setCurrentSelectedTray(tray) },
-            go = { viewModel.go() }
+            go = {
+                viewModel.setGoToLocation()
+                Log.d("DeliveryScreen", "Going to location: ${viewModel.goToLocation}")
+                navController.navigate("going/${viewModel.goToLocation}")
+                 },
         )
     }
 }
 
 @Composable
-internal fun DeliveryScreen(
+internal fun IdleScreen(
     modifier: Modifier,
     locations: List<String>,
     setTrayLocation: (location: String) -> Unit,

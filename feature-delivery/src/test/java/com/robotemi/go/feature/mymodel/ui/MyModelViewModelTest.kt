@@ -26,7 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import com.robotemi.go.core.data.LocationRepository
 import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState
-import com.robotemi.go.feature.delivery.ui.DeliveryViewModel
+import com.robotemi.go.feature.delivery.ui.IdleViewModel
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -37,14 +37,14 @@ import com.robotemi.go.feature.delivery.ui.DeliveryViewModel
 class MyModelViewModelTest {
     @Test
     fun uiState_initiallyLoading() = runTest {
-//        val viewModel = MyModelViewModel(FakeLocationRepository())
-//        assertEquals(viewModel.uiState.first(), DeliveryScreenUiState.Loading)
+        val viewModel = IdleViewModel(FakeLocationRepository())
+        assertEquals(viewModel.uiState.first(), DeliveryScreenUiState.Loading)
     }
 
     @Test
     fun uiState_onItemSaved_isDisplayed() = runTest {
-//        val viewModel = MyModelViewModel(FakeLocationRepository())
-//        assertEquals(viewModel.uiState.first(), DeliveryScreenUiState.Loading)
+        val viewModel = IdleViewModel(FakeLocationRepository())
+        assertEquals(viewModel.uiState.first(), DeliveryScreenUiState.Loading)
     }
 }
 
