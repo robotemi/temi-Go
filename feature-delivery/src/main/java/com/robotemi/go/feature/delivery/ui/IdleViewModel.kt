@@ -16,23 +16,17 @@
 
 package com.robotemi.go.feature.delivery.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.robotemi.go.core.data.LocationRepository
 import com.robotemi.go.feature.delivery.model.Tray
-import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Error
-import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Loading
-import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Success
+import com.robotemi.sdk.Robot
+import com.robotemi.sdk.serial.Serial
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -41,22 +35,20 @@ class IdleViewModel @Inject constructor(
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 
+    private val robot = Robot.getInstance()
+
     var goToLocation = ""
 
+    private val _uiState = MutableStateFlow(IdleScreenUiState())
 
-    private val _uiStateInternal: StateFlow<DeliveryScreenUiState> = locationRepository
-        .locations.map<List<String>, DeliveryScreenUiState> { Success(locations = it) }
-        .catch { emit(Error(it)) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Loading)
-
-    private val _uiState: MutableStateFlow<DeliveryScreenUiState> = MutableStateFlow(_uiStateInternal.value)
-
-    val uiState: StateFlow<DeliveryScreenUiState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            _uiStateInternal.collect {
-                _uiState.emit(it)
+            locationRepository.locations.collectLatest {
+                _uiState.update { currentState ->
+                    currentState.copy(locations = it)
+                }
             }
         }
     }
@@ -69,71 +61,71 @@ class IdleViewModel @Inject constructor(
 
     fun setTrayLocation(location: String) {
         _uiState.update { currentState ->
-            if (currentState is Success && currentState.currentSelectedTray != null) {
+            if (currentState.currentSelectedTray != null) {
                 val newTray = currentState.tray.toMutableMap()
                 newTray[currentState.currentSelectedTray!!] = location
+                toggleLED(currentState.currentSelectedTray!!, true)
                 currentState.copy(tray = newTray, currentSelectedTray = null)
             } else {
                 currentState
             }
         }
-        Log.d("MyModelViewModel", "${(uiState.value as Success).tray}")
     }
 
     fun removeTrayLocation(tray: Tray) {
         _uiState.update { currentState ->
-            if (currentState is Success) {
-                val newTray = currentState.tray.toMutableMap()
-                newTray.remove(tray)
-                currentState.copy(tray = newTray)
-            } else {
-                currentState
-            }
+            val newTray = currentState.tray.toMutableMap()
+            newTray.remove(tray)
+            toggleLED(tray, false)
+            currentState.copy(tray = newTray)
         }
-        Log.d("MyModelViewModel", "${(uiState.value as Success).tray}")
     }
 
-    fun setCurrentSelectedTray(tray: Tray?){
+    fun setCurrentSelectedTray(tray: Tray?) {
         _uiState.update { currentState ->
-            if (currentState is Success) {
-                currentState.copy(currentSelectedTray = if (currentState.currentSelectedTray == tray) null else tray)
-            } else {
-                currentState
-            }
+            currentState.copy(currentSelectedTray = if (currentState.currentSelectedTray == tray) null else tray)
         }
     }
 
-    fun setGoToLocation(){
-        val locationTop = (uiState.value as Success).tray[Tray.TOP]
-        val locationMiddle = (uiState.value as Success).tray[Tray.MIDDLE]
-        val locationBottom = (uiState.value as Success).tray[Tray.BOTTOM]
+    private fun toggleLED(tray: Tray, isOn: Boolean) {
+        if (isOn) {
+            robot.sendSerialCommand(
+                Serial.CMD_TRAY_LIGHT,
+                byteArrayOf(tray.trayNumber.toByte(), 0XFF.toByte(), 0XFF.toByte(), 0XFF.toByte())
+            )
+        } else {
+            robot.sendSerialCommand(
+                Serial.CMD_TRAY_LIGHT,
+                byteArrayOf(tray.trayNumber.toByte(), 0X00, 0X00, 0X00)
+            )
+        }
+    }
 
-        if (locationTop != null){
+    fun setGoToLocation() {
+        val locationTop = _uiState.value.tray[Tray.TOP]
+        val locationMiddle = _uiState.value.tray[Tray.MIDDLE]
+        val locationBottom = _uiState.value.tray[Tray.BOTTOM]
+
+        if (locationTop != null) {
             goToLocation = locationTop
             return
         }
 
-        if (locationMiddle != null){
+        if (locationMiddle != null) {
             goToLocation = locationMiddle
             return
         }
 
-        if (locationBottom != null){
+        if (locationBottom != null) {
             goToLocation = locationBottom
             return
         }
-
     }
-
 }
 
-sealed class DeliveryScreenUiState {
-    data object Loading : DeliveryScreenUiState()
-    data class Error(val throwable: Throwable) : DeliveryScreenUiState()
-    data class Success(
-        val locations: List<String>,
-        var tray: MutableMap<Tray, String?> = mutableMapOf(),
-        var currentSelectedTray: Tray? = null,
-    ) : DeliveryScreenUiState()
-}
+data class IdleScreenUiState(
+    var locations: List<String> = emptyList(),
+    var tray: MutableMap<Tray, String?> = mutableMapOf(),
+    var currentSelectedTray: Tray? = null,
+)
 

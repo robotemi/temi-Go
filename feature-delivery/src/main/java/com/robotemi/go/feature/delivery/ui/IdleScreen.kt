@@ -28,8 +28,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Success
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -49,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,30 +67,33 @@ import com.robotemi.go.feature.mymodel.R
 
 
 @Composable
-fun IdleScreen(modifier: Modifier = Modifier, viewModel: IdleViewModel = hiltViewModel(), navController: NavController) {
-    val items by viewModel.uiState.collectAsState()
+fun IdleScreen(
+    modifier: Modifier = Modifier,
+    viewModel: IdleViewModel = hiltViewModel(),
+    navController: NavController
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
-    if (items is Success) {
-        IdleScreen(
-            modifier = modifier,
-            locations = (items as Success).locations,
-            map = (items as Success).tray,
-            currentSelectedTray = (items as Success).currentSelectedTray,
-            setTrayLocation = { location: String ->
-                viewModel.setTrayLocation(
-                    location
-                )
-            },
-            removeTrayLocation = { tray -> viewModel.removeTrayLocation(tray) },
-            setCurrentSelectedTray = { tray -> viewModel.setCurrentSelectedTray(tray) },
-            go = {
-                viewModel.setGoToLocation()
-                Log.d("DeliveryScreen", "Going to location: ${viewModel.goToLocation}")
-                navController.navigate("going/${viewModel.goToLocation}")
-                 },
-        )
-    }
+    IdleScreen(
+        modifier = modifier,
+        locations = uiState.locations,
+        map = uiState.tray,
+        currentSelectedTray = uiState.currentSelectedTray,
+        setTrayLocation = { location: String ->
+            viewModel.setTrayLocation(
+                location
+            )
+        },
+        removeTrayLocation = { viewModel.removeTrayLocation(it) },
+        setCurrentSelectedTray = { viewModel.setCurrentSelectedTray(it) },
+        go = {
+            viewModel.setGoToLocation()
+            Log.d("DeliveryScreen", "Going to location: ${viewModel.goToLocation}")
+            navController.navigate("going/${viewModel.goToLocation}")
+        },
+    )
 }
+
 
 @Composable
 internal fun IdleScreen(
@@ -112,7 +116,9 @@ internal fun IdleScreen(
         )
 
 
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 140.dp, top = 130.dp)) {
             LocationGrid(
                 locations = locations,
                 onClick = setTrayLocation,
@@ -133,7 +139,7 @@ fun LocationGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         modifier = Modifier
-            .padding(top = 150.dp)
+            .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFFF8F8F8))
             .fillMaxWidth(0.9f)
             .fillMaxHeight(0.75f),
@@ -143,7 +149,7 @@ fun LocationGrid(
             Box(
                 modifier = Modifier
                     .width(194.dp)
-                    .height(150.dp)
+                    .height(180.dp)
                     .padding(24.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
@@ -155,20 +161,22 @@ fun LocationGrid(
                             Color(0xFFBABABA)
                     )
                     .clickable {
-                        if (!isSelected) {
-                            onClick(location)
-                        }
+//                        if (!isSelected) {
+                        onClick(location)
+//                        }
                     },
             ) {
                 Text(
                     text = location,
                     color = Color.White,
                     textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
                     fontSize = when (location.length) {
                         in 1..5 -> 60.sp
                         in 6..10 -> 40.sp
                         else -> 30.sp
                     },
+                    lineHeight = 40.sp,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(horizontal = 5.dp)
@@ -196,12 +204,10 @@ fun GoButton(modifier: Modifier, enable: Boolean, go: () -> Unit) {
 
     Row(
         modifier = modifier
-            .clickable(onClick = {
-                if (enable) {
-                    go()
-                }
+            .clickable(enabled = enable, indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                go()
             }
-            )
             .background(Color(0xFFEDEDED))
             .padding(end = 50.dp)
     ) {

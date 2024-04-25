@@ -2,22 +2,30 @@ package com.robotemi.go.feature.delivery.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -34,7 +42,8 @@ fun TemiGo(
 ) {
     ConstraintLayout(
         modifier = Modifier
-            .wrapContentSize()
+            .fillMaxHeight(.75f)
+            .offset(x = 100.dp, y = 100.dp)
             .aspectRatio(379 / 726f)
     ) {
         val (
@@ -78,7 +87,8 @@ fun TemiGo(
             onTrayClicked = { onSelect(Tray.TOP) },
             onXClicked = { onCancel(Tray.TOP) },
             destination = map[Tray.TOP],
-            isSelected = currentSelectedTray == Tray.TOP
+            isSelected = currentSelectedTray == Tray.TOP,
+            boxOffsetBottom = 0.dp,
         )
 
         TrayLayer(
@@ -98,7 +108,8 @@ fun TemiGo(
             onTrayClicked = { onSelect(Tray.MIDDLE) },
             onXClicked = { onCancel(Tray.MIDDLE) },
             destination = map[Tray.MIDDLE],
-            isSelected = currentSelectedTray == Tray.MIDDLE
+            isSelected = currentSelectedTray == Tray.MIDDLE,
+            boxOffsetBottom = 0.dp
         )
 
         TrayLayer(
@@ -118,7 +129,8 @@ fun TemiGo(
             onTrayClicked = { onSelect(Tray.BOTTOM) },
             onXClicked = { onCancel(Tray.BOTTOM) },
             destination = map[Tray.BOTTOM],
-            isSelected = currentSelectedTray == Tray.BOTTOM
+            isSelected = currentSelectedTray == Tray.BOTTOM,
+            boxOffsetBottom = (-20).dp
         )
     }
 
@@ -134,6 +146,7 @@ private fun TrayLayer(
     onXClicked: () -> Unit,
     destination: String?,
     isSelected: Boolean = false,
+    boxOffsetBottom: Dp
 ) {
 
     val imageResource = if (destination != null || isSelected) highlightResource else dimResource
@@ -145,7 +158,8 @@ private fun TrayLayer(
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = destination == null) {
+                .clickable(enabled = destination == null, indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
                     onTrayClicked()
                 },
             contentScale = ContentScale.FillWidth,
@@ -155,17 +169,26 @@ private fun TrayLayer(
         if (destination != null) {
             Box(
                 modifier = Modifier
+                    .offset(x = 5.dp, y = boxOffsetBottom)
+                    .clip(
+                        RoundedCornerShape(19.dp)
+                    )
+                    .background(Color(0xFF20D199))
                     .align(Alignment.Center)
-                    .widthIn(max = 210.dp)
-                    .heightIn(max = 57.dp)
+                    .width(203.dp)
+                    .height(49.dp)
             ) {
                 Text(
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .align(Alignment.Center),
                     text = destination, color = Color.White,
                     textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
                     fontSize = when (destination.length) {
-                        in 1..5 -> 60.sp
-                        in 6..10 -> 40.sp
-                        else -> 30.sp
+                        in 1..5 -> 40.sp
+                        in 6..10 -> 30.sp
+                        else -> 15.sp
                     },
                 )
             }
@@ -173,42 +196,22 @@ private fun TrayLayer(
     }
 
     if (destination != null) {
-        ButtonX(modifier = modifierX
-            .offset(x = (-10).dp)
-            .clickable {
-                onXClicked()
-            })
+        ButtonX(modifier = modifierX, onXClicked = onXClicked, boxOffsetBottom = boxOffsetBottom)
     }
 }
 
 @Composable
-private fun ButtonX(modifier: Modifier) {
+private fun ButtonX(modifier: Modifier, onXClicked: () -> Unit, boxOffsetBottom: Dp) {
     Image(
-        modifier = modifier,
+        modifier = modifier
+            .offset(x = 15.dp, y = boxOffsetBottom)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                onXClicked()
+            }
+            .padding(15.dp),
         painter = painterResource(id = R.drawable.button_x),
         contentDescription = null
     )
 }
-
-
-//@Preview(showBackground = true, widthDp = 1706, heightDp = 904)
-//@Composable
-//private fun PortraitPreview() {
-//    MyApplicationTheme {
-//        TemiGoNew(changeTray = {},
-//            removeTrayLocation = {},
-//            map = mapOf(),
-//            currentSelectedTray = Tray.EMPTY,
-//            onSelect = {tray -> currentSelectedTray = if(currentSelectedTray != tray) tray else null },
-//            onCancel = {tray -> removeTrayLocation(tray)},)
-//    }
-//}
-//
-//
-//@Preview(showBackground = true, widthDp = 504, heightDp = 1706)
-//@Composable
-//private fun PortraitPreview2() {
-//    MyApplicationTheme {
-//        TemiGoNew(changeTray = {}, removeTrayLocation = {}, map = mapOf(), currentSelectedTray = Tray.EMPTY)
-//    }
-//}
