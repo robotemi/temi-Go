@@ -39,6 +39,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <meta-data
+            android:name="com.robotemi.sdk.metadata.SKILL"
+            android:value="@string/app_name" />
+
+        <meta-data
+            android:name="com.robotemi.sdk.metadata.KIOSK"
+            android:value="TRUE" />
+
+        <meta-data
+            android:name="@string/metadata_permissions"
+            android:value="com.robotemi.permission.settings" />
     </application>
 
 </manifest>

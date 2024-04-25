@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -41,6 +43,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,18 +54,23 @@ import com.robotemi.go.feature.mymodel.R
 private val gradientColors = listOf(Color(0xFF20D199), Color.White, Color(0xFF20D199))
 
 @Composable
-fun GoingScreen(modifier: Modifier = Modifier, viewModel: GoingViewModel = hiltViewModel(), navController: NavController) {
+fun GoingScreen(
+    modifier: Modifier = Modifier,
+    viewModel: GoingViewModel = hiltViewModel(),
+    navController: NavController
+) {
     val back = viewModel.back.collectAsState()
     if (back.value) {
         navController.popBackStack("idle", false)
     }
-    GoingScreen(modifier, viewModel.location)
+    GoingScreen(modifier = modifier, location = viewModel.location,stop = {viewModel.stop()})
 }
 
 @Composable
 internal fun GoingScreen(
     modifier: Modifier = Modifier,
-    location: String
+    location: String,
+    stop: () -> Unit
 ) {
     Column(modifier.fillMaxSize()) {
         Destination(
@@ -74,7 +82,8 @@ internal fun GoingScreen(
         PauseButton(
             modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(20.dp)
+                .padding(20.dp),
+            stop
         )
     }
 }
@@ -91,27 +100,36 @@ fun Destination(
             .drawAnimatedBorder(
                 strokeWidth = 8.dp,
                 shape = RoundedCornerShape(18.dp),
-                durationMillis = 1500)
+                durationMillis = 1500
+            )
             .background(Color.White)
-            .padding(12.dp)){
+            .padding(12.dp)
+    ) {
         Text(
             text = location,
-            modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp).align(Alignment.Center),
+            modifier = Modifier
+                .padding(horizontal = 30.dp, vertical = 10.dp)
+                .align(Alignment.Center),
             color = Color(0xFF20D199),
-            fontSize = when(location.length){
+            fontSize = when (location.length) {
                 in 1..5 -> 400.sp
                 in 6..10 -> 150.sp
                 else -> 100.sp
             },
             fontWeight = FontWeight.Bold,
+            lineHeight = 200.sp,
+            textAlign = TextAlign.Center
         )
     }
 }
 
 
 @Composable
-fun PauseButton(modifier: Modifier = Modifier) {
-    Row(modifier = modifier.clickable { /*TODO*/ }) {
+fun PauseButton(modifier: Modifier = Modifier, stop: () -> Unit) {
+    Row(
+        modifier = modifier.clickable(
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }) { stop() }) {
         Text(
             text = "PAUSE",
             fontWeight = FontWeight.Bold,

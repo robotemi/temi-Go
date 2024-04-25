@@ -28,8 +28,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import com.robotemi.go.feature.delivery.ui.DeliveryScreenUiState.Success
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -49,6 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +59,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -66,30 +69,33 @@ import com.robotemi.go.feature.mymodel.R
 
 
 @Composable
-fun IdleScreen(modifier: Modifier = Modifier, viewModel: IdleViewModel = hiltViewModel(), navController: NavController) {
-    val items by viewModel.uiState.collectAsState()
+fun IdleScreen(
+    modifier: Modifier = Modifier,
+    viewModel: IdleViewModel = hiltViewModel(),
+    navController: NavController
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
-    if (items is Success) {
-        IdleScreen(
-            modifier = modifier,
-            locations = (items as Success).locations,
-            map = (items as Success).tray,
-            currentSelectedTray = (items as Success).currentSelectedTray,
-            setTrayLocation = { location: String ->
-                viewModel.setTrayLocation(
-                    location
-                )
-            },
-            removeTrayLocation = { tray -> viewModel.removeTrayLocation(tray) },
-            setCurrentSelectedTray = { tray -> viewModel.setCurrentSelectedTray(tray) },
-            go = {
-                viewModel.setGoToLocation()
-                Log.d("DeliveryScreen", "Going to location: ${viewModel.goToLocation}")
-                navController.navigate("going/${viewModel.goToLocation}")
-                 },
-        )
-    }
+    IdleScreen(
+        modifier = modifier,
+        locations = uiState.locations,
+        map = uiState.tray,
+        currentSelectedTray = uiState.currentSelectedTray,
+        setTrayLocation = { location: String ->
+            viewModel.setTrayLocation(
+                location
+            )
+        },
+        removeTrayLocation = { viewModel.removeTrayLocation(it) },
+        setCurrentSelectedTray = { viewModel.setCurrentSelectedTray(it) },
+        go = {
+            viewModel.setGoToLocation()
+            Log.d("DeliveryScreen", "Going to location: ${viewModel.goToLocation}")
+            navController.navigate("going/${viewModel.goToLocation}")
+        },
+    )
 }
+
 
 @Composable
 internal fun IdleScreen(
@@ -112,7 +118,9 @@ internal fun IdleScreen(
         )
 
 
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 140.dp, top = 130.dp)) {
             LocationGrid(
                 locations = locations,
                 onClick = setTrayLocation,
@@ -133,7 +141,7 @@ fun LocationGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         modifier = Modifier
-            .padding(top = 150.dp)
+            .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFFF8F8F8))
             .fillMaxWidth(0.9f)
             .fillMaxHeight(0.75f),
@@ -142,36 +150,36 @@ fun LocationGrid(
             val isSelected = map.containsValue(location)
             Box(
                 modifier = Modifier
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
                     .width(194.dp)
-                    .height(150.dp)
-                    .padding(24.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .height(113.dp)
+                    .clip(RoundedCornerShape(19.dp))
                     .background(
                         if (isSelected) {
-                            Color(
-                                0xFF20D199
-                            )
+                            Color(0xFF20D199)
                         } else
                             Color(0xFFBABABA)
                     )
                     .clickable {
-                        if (!isSelected) {
-                            onClick(location)
-                        }
-                    },
+                        onClick(location)
+                    }.padding(10.dp),
             ) {
                 Text(
                     text = location,
                     color = Color.White,
                     textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
                     fontSize = when (location.length) {
-                        in 1..5 -> 60.sp
-                        in 6..10 -> 40.sp
-                        else -> 30.sp
+                        in 1..8 -> 40.sp
+                        in 9 .. 20 -> 30.sp
+                        else -> 20.sp
                     },
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 40.sp,
                     modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentHeight()
                         .align(Alignment.Center)
-                        .padding(horizontal = 5.dp)
                 )
             }
         }
@@ -196,12 +204,10 @@ fun GoButton(modifier: Modifier, enable: Boolean, go: () -> Unit) {
 
     Row(
         modifier = modifier
-            .clickable(onClick = {
-                if (enable) {
-                    go()
-                }
+            .clickable(enabled = enable, indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                go()
             }
-            )
             .background(Color(0xFFEDEDED))
             .padding(end = 50.dp)
     ) {

@@ -34,6 +34,10 @@ class GoingViewModel(savedStateHandle: SavedStateHandle): ViewModel(), OnGoToLoc
         }
     }
 
+    fun stop(){
+        robot.stopMovement()
+    }
+
     override fun onCleared() {
         super.onCleared()
         robot.removeOnGoToLocationStatusChangedListener(this)
