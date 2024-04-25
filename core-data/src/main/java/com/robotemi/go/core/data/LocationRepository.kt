@@ -24,6 +24,7 @@ import com.robotemi.go.core.database.MyModelDao
 import com.robotemi.sdk.Robot
 import com.robotemi.sdk.listeners.OnLocationsUpdatedListener
 import com.robotemi.sdk.listeners.OnRobotReadyListener
+import com.robotemi.sdk.permission.Permission
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
@@ -59,6 +60,9 @@ class RealLocationRepository @Inject constructor(
             val locations = Robot.getInstance().locations
             Log.d("LOCATIONS", "initial locations $locations")
             flow.value = locations
+            Robot.getInstance().requestToBeKioskApp()
+            Robot.getInstance().requestPermissions(listOf(Permission.SETTINGS), requestCode = 0)
+            Robot.getInstance().toggleNavigationBillboard(true)
         }
     }
 }

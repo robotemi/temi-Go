@@ -17,7 +17,6 @@ class GoingViewModel(savedStateHandle: SavedStateHandle): ViewModel(), OnGoToLoc
     val back = _back.asStateFlow()
     init {
         robot.addOnGoToLocationStatusChangedListener(this)
-        robot.toggleNavigationBillboard(true)
         robot.goTo(location)
     }
     override fun onGoToLocationStatusChanged(
@@ -33,6 +32,10 @@ class GoingViewModel(savedStateHandle: SavedStateHandle): ViewModel(), OnGoToLoc
         if (status == OnGoToLocationStatusChangedListener.ABORT) {
             _back.value = true
         }
+    }
+
+    fun stop(){
+        robot.stopMovement()
     }
 
     override fun onCleared() {

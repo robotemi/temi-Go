@@ -38,7 +38,7 @@ fun TemiGo(
     onSelect: (tray: Tray) -> Unit,
     onCancel: (tray: Tray) -> Unit,
     map: Map<Tray, String?>,
-    currentSelectedTray: Tray?
+    currentSelectedTray: Tray?,
 ) {
     ConstraintLayout(
         modifier = Modifier
@@ -180,15 +180,15 @@ private fun TrayLayer(
             ) {
                 Text(
                     modifier = Modifier
-                        .padding(2.dp)
+                        .padding(horizontal = 12.dp)
                         .align(Alignment.Center),
                     text = destination, color = Color.White,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = when (destination.length) {
-                        in 1..5 -> 40.sp
-                        in 6..10 -> 30.sp
-                        else -> 15.sp
+                        in 1..5 -> 30.sp
+                        in 6..10 -> 25.sp
+                        else -> 20.sp
                     },
                 )
             }

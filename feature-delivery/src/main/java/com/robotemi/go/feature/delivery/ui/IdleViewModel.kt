@@ -91,7 +91,7 @@ class IdleViewModel @Inject constructor(
         if (isOn) {
             robot.sendSerialCommand(
                 Serial.CMD_TRAY_LIGHT,
-                byteArrayOf(tray.trayNumber.toByte(), 0XFF.toByte(), 0XFF.toByte(), 0XFF.toByte())
+                byteArrayOf(tray.trayNumber.toByte(), 0X20.toByte(), 0XD1.toByte(), 0X99.toByte())
             )
         } else {
             robot.sendSerialCommand(
