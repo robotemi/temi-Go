@@ -23,6 +23,7 @@ import com.robotemi.go.core.database.MyModelDao
 import com.robotemi.sdk.Robot
 import com.robotemi.sdk.listeners.OnLocationsUpdatedListener
 import com.robotemi.sdk.listeners.OnRobotReadyListener
+import com.robotemi.sdk.permission.OnRequestPermissionResultListener
 import com.robotemi.sdk.permission.Permission
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -35,7 +36,7 @@ interface LocationRepository {
 
 class RealLocationRepository @Inject constructor(
     private val myModelDao: MyModelDao
-) : LocationRepository, OnLocationsUpdatedListener, OnRobotReadyListener{
+) : LocationRepository, OnLocationsUpdatedListener, OnRobotReadyListener, OnRequestPermissionResultListener{
 
     private val robot = Robot.getInstance()
 
@@ -44,6 +45,7 @@ class RealLocationRepository @Inject constructor(
     init {
         robot.addOnRobotReadyListener(this)
         robot.addOnLocationsUpdatedListener(this)
+        robot.addOnRequestPermissionResultListener(this)
     }
 
     override val locations: Flow<List<String>> = flow
@@ -62,14 +64,34 @@ class RealLocationRepository @Inject constructor(
             val locations = Robot.getInstance().locations
             Log.d("LOCATIONS", "initial locations $locations")
             flow.value = locations
-            robot.requestToBeKioskApp()
-            robot.requestPermissions(listOf(Permission.SETTINGS), requestCode = 0)
+            checkKioskMode()
             checkPermission()
+        }
+    }
+
+    private fun checkKioskMode() {
+        if (!robot.isKioskModeOn()) {
+            robot.requestToBeKioskApp()
         }
     }
 
     private fun checkPermission() {
         if (robot.checkSelfPermission(Permission.SETTINGS) == Permission.GRANTED) {
+            if (robot.isKioskModeOn()) {
+                robot.toggleNavigationBillboard(true)
+            }
+        } else {
+            robot.requestPermissions(listOf(Permission.SETTINGS), requestCode = 0)
+        }
+    }
+
+    override fun onRequestPermissionResult(
+        permission: Permission,
+        grantResult: Int,
+        requestCode: Int
+    ) {
+        Log.d("PERMISSION", "permission $permission, grantResult $grantResult")
+        if (permission == Permission.SETTINGS && grantResult == Permission.GRANTED) {
             if (robot.isKioskModeOn()) {
                 robot.toggleNavigationBillboard(true)
             }
