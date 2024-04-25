@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -58,6 +59,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -148,23 +150,19 @@ fun LocationGrid(
             val isSelected = map.containsValue(location)
             Box(
                 modifier = Modifier
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
                     .width(194.dp)
-                    .height(180.dp)
-                    .padding(24.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .height(113.dp)
+                    .clip(RoundedCornerShape(19.dp))
                     .background(
                         if (isSelected) {
-                            Color(
-                                0xFF20D199
-                            )
+                            Color(0xFF20D199)
                         } else
                             Color(0xFFBABABA)
                     )
                     .clickable {
-//                        if (!isSelected) {
                         onClick(location)
-//                        }
-                    },
+                    }.padding(10.dp),
             ) {
                 Text(
                     text = location,
@@ -172,14 +170,16 @@ fun LocationGrid(
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = when (location.length) {
-                        in 1..5 -> 60.sp
-                        in 6..10 -> 40.sp
-                        else -> 30.sp
+                        in 1..8 -> 40.sp
+                        in 9 .. 20 -> 30.sp
+                        else -> 20.sp
                     },
+                    overflow = TextOverflow.Ellipsis,
                     lineHeight = 40.sp,
                     modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentHeight()
                         .align(Alignment.Center)
-                        .padding(horizontal = 5.dp)
                 )
             }
         }
