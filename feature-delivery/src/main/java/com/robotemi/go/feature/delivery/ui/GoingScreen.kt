@@ -10,7 +10,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -42,6 +40,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -89,7 +88,7 @@ internal fun GoingScreen(
 }
 
 @Composable
-fun Destination(
+private fun Destination(
     modifier: Modifier = Modifier,
     location: String
 ) {
@@ -112,7 +111,7 @@ fun Destination(
                 .align(Alignment.Center),
             color = Color(0xFF20D199),
             fontSize = when (location.length) {
-                in 1..5 -> 400.sp
+                in 1..5 -> 300.sp
                 in 6..10 -> 150.sp
                 else -> 100.sp
             },
@@ -125,13 +124,13 @@ fun Destination(
 
 
 @Composable
-fun PauseButton(modifier: Modifier = Modifier, stop: () -> Unit) {
+private fun PauseButton(modifier: Modifier = Modifier, stop: () -> Unit) {
     Row(
-        modifier = modifier.clickable(
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() }) { stop() }) {
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .clickable { stop() }) {
         Text(
-            text = "PAUSE",
+            text = stringResource(R.string.pause),
             fontWeight = FontWeight.Bold,
             color = Color(0xFF4A4A4A),
             fontSize = 70.sp,
@@ -148,7 +147,7 @@ fun PauseButton(modifier: Modifier = Modifier, stop: () -> Unit) {
     }
 }
 
-fun Modifier.drawAnimatedBorder(
+private fun Modifier.drawAnimatedBorder(
     strokeWidth: Dp,
     shape: Shape,
     brush: (Size) -> Brush = {

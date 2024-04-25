@@ -18,12 +18,12 @@ package com.robotemi.go.core.data
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import com.robotemi.go.core.database.MyModel
 import com.robotemi.go.core.database.MyModelDao
 import com.robotemi.sdk.Robot
 import com.robotemi.sdk.listeners.OnLocationsUpdatedListener
 import com.robotemi.sdk.listeners.OnRobotReadyListener
+import com.robotemi.sdk.permission.OnRequestPermissionResultListener
 import com.robotemi.sdk.permission.Permission
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -36,12 +36,17 @@ interface LocationRepository {
 
 class RealLocationRepository @Inject constructor(
     private val myModelDao: MyModelDao
-) : LocationRepository, OnLocationsUpdatedListener, OnRobotReadyListener {
+) : LocationRepository, OnLocationsUpdatedListener, OnRobotReadyListener,
+    OnRequestPermissionResultListener {
+
+    private val robot = Robot.getInstance()
 
     private val flow = MutableStateFlow<List<String>>(listOf())
+
     init {
-        Robot.getInstance().addOnRobotReadyListener(this)
-        Robot.getInstance().addOnLocationsUpdatedListener(this)
+        robot.addOnRobotReadyListener(this)
+        robot.addOnLocationsUpdatedListener(this)
+        robot.addOnRequestPermissionResultListener(this)
     }
 
     override val locations: Flow<List<String>> = flow
@@ -60,9 +65,29 @@ class RealLocationRepository @Inject constructor(
             val locations = Robot.getInstance().locations
             Log.d("LOCATIONS", "initial locations $locations")
             flow.value = locations
-            Robot.getInstance().requestToBeKioskApp()
-            Robot.getInstance().requestPermissions(listOf(Permission.SETTINGS), requestCode = 0)
-            Robot.getInstance().toggleNavigationBillboard(true)
+
+            if (robot.isSelectedKioskApp()) {
+                checkPermission()
+            }
+        }
+    }
+
+    private fun checkPermission() {
+        if (robot.checkSelfPermission(Permission.SETTINGS) == Permission.GRANTED) {
+            robot.toggleNavigationBillboard(true)
+        } else {
+            robot.requestPermissions(listOf(Permission.SETTINGS), requestCode = 0)
+        }
+    }
+
+    override fun onRequestPermissionResult(
+        permission: Permission,
+        grantResult: Int,
+        requestCode: Int
+    ) {
+        Log.d("PERMISSION", "permission $permission, grantResult $grantResult")
+        if (permission == Permission.SETTINGS && grantResult == Permission.GRANTED) {
+            robot.toggleNavigationBillboard(true)
         }
     }
 }

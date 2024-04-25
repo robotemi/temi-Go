@@ -38,6 +38,7 @@ class IdleViewModel @Inject constructor(
     private val robot = Robot.getInstance()
 
     var goToLocation = ""
+    private set
 
     private val _uiState = MutableStateFlow(IdleScreenUiState())
 
