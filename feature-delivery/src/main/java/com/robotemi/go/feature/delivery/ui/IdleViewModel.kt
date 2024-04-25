@@ -38,6 +38,7 @@ class IdleViewModel @Inject constructor(
     private val robot = Robot.getInstance()
 
     var goToLocation = ""
+    private set
 
     private val _uiState = MutableStateFlow(IdleScreenUiState())
 
@@ -50,12 +51,6 @@ class IdleViewModel @Inject constructor(
                     currentState.copy(locations = it)
                 }
             }
-        }
-    }
-
-    fun addMyModel(name: String) {
-        viewModelScope.launch {
-            locationRepository.add(name)
         }
     }
 

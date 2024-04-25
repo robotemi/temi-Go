@@ -34,7 +34,7 @@ class GoingViewModel(savedStateHandle: SavedStateHandle): ViewModel(), OnGoToLoc
         }
     }
 
-    fun stop(){
+    fun stop() {
         robot.stopMovement()
     }
 
