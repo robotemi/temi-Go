@@ -36,7 +36,8 @@ interface LocationRepository {
 
 class RealLocationRepository @Inject constructor(
     private val myModelDao: MyModelDao
-) : LocationRepository, OnLocationsUpdatedListener, OnRobotReadyListener, OnRequestPermissionResultListener{
+) : LocationRepository, OnLocationsUpdatedListener, OnRobotReadyListener,
+    OnRequestPermissionResultListener {
 
     private val robot = Robot.getInstance()
 
@@ -64,22 +65,16 @@ class RealLocationRepository @Inject constructor(
             val locations = Robot.getInstance().locations
             Log.d("LOCATIONS", "initial locations $locations")
             flow.value = locations
-            checkKioskMode()
-            checkPermission()
-        }
-    }
 
-    private fun checkKioskMode() {
-        if (!robot.isKioskModeOn()) {
-            robot.requestToBeKioskApp()
+            if (robot.isSelectedKioskApp()) {
+                checkPermission()
+            }
         }
     }
 
     private fun checkPermission() {
         if (robot.checkSelfPermission(Permission.SETTINGS) == Permission.GRANTED) {
-            if (robot.isKioskModeOn()) {
-                robot.toggleNavigationBillboard(true)
-            }
+            robot.toggleNavigationBillboard(true)
         } else {
             robot.requestPermissions(listOf(Permission.SETTINGS), requestCode = 0)
         }
@@ -92,9 +87,7 @@ class RealLocationRepository @Inject constructor(
     ) {
         Log.d("PERMISSION", "permission $permission, grantResult $grantResult")
         if (permission == Permission.SETTINGS && grantResult == Permission.GRANTED) {
-            if (robot.isKioskModeOn()) {
-                robot.toggleNavigationBillboard(true)
-            }
+            robot.toggleNavigationBillboard(true)
         }
     }
 }
