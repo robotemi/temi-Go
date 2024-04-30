@@ -60,10 +60,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.robotemi.go.core.ui.MyApplicationTheme
 import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.go.feature.mymodel.R
 
@@ -118,9 +120,11 @@ internal fun IdleScreen(
         )
 
 
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 140.dp, top = 130.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 140.dp, top = 130.dp)
+        ) {
             LocationGrid(
                 locations = locations,
                 onClick = setTrayLocation,
@@ -162,7 +166,8 @@ fun LocationGrid(
                     )
                     .clickable {
                         onClick(location)
-                    }.padding(10.dp),
+                    }
+                    .padding(10.dp),
             ) {
                 Text(
                     text = location,
@@ -171,7 +176,7 @@ fun LocationGrid(
                     fontWeight = FontWeight.Bold,
                     fontSize = when (location.length) {
                         in 1..8 -> 40.sp
-                        in 9 .. 20 -> 30.sp
+                        in 9..20 -> 30.sp
                         else -> 20.sp
                     },
                     overflow = TextOverflow.Ellipsis,
@@ -241,12 +246,37 @@ fun GoButton(modifier: Modifier, enable: Boolean, go: () -> Unit) {
 
 
 // Preview
-//@Preview(showBackground = true, widthDp = 1706, heightDp = 904)
-//@Composable
-//private fun PortraitPreview() {
-//    MyApplicationTheme {
-//        DeliveryScreen(
-//            listOf("1", "Bar", "3", "4", "5", "6", "7", "8", "9", "Dining"),
-//            onSave = {})
-//    }
-//}
+@Preview(showBackground = true, widthDp = 1706, heightDp = 904)
+@Composable
+private fun PortraitPreview() {
+    MyApplicationTheme {
+        IdleScreen(
+            modifier = Modifier.fillMaxSize(),
+            locations = listOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J"),
+            setTrayLocation = {},
+            setCurrentSelectedTray = {},
+            removeTrayLocation = {},
+            map = mapOf(),
+            currentSelectedTray = null,
+            go = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 1706, heightDp = 904)
+@Composable
+private fun LocationGridPreview() {
+    LocationGrid(
+        locations = listOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J"),
+        onClick = {},
+        map = mapOf()
+    )
+}
+
+@Preview
+@Composable
+private fun GoButtonPreview() {
+    MyApplicationTheme {
+        GoButton(modifier = Modifier, enable = true, go = {})
+    }
+}
