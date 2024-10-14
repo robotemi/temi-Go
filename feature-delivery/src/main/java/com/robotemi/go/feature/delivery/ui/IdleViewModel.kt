@@ -21,7 +21,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import com.robotemi.go.core.data.LocationRepository
+import com.robotemi.go.feature.delivery.di.StringResourcesProvider
 import com.robotemi.go.feature.delivery.model.Tray
+import com.robotemi.go.feature.mymodel.R
 import com.robotemi.sdk.Robot
 import com.robotemi.sdk.serial.Serial
 import com.robotemi.sdk.serial.Serial.getLcdColorBytes
@@ -33,7 +35,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class IdleViewModel @Inject constructor(
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
+    private val stringResourcesProvider: StringResourcesProvider
 ) : ViewModel() {
 
     private val robot = Robot.getInstance()
@@ -111,7 +114,7 @@ class IdleViewModel @Inject constructor(
     }
 
     fun setLcdText(){
-        robot.sendSerialCommand(Serial.CMD_LCD_TEXT, Serial.getLcdBytes("Select"))
+        robot.sendSerialCommand(Serial.CMD_LCD_TEXT, Serial.getLcdBytes(stringResourcesProvider.getString(R.string.select)))
     }
 
     fun setGoToLocation() {
