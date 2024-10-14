@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.robotemi.sdk.Robot
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener
+import com.robotemi.sdk.serial.Serial
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -25,6 +26,9 @@ class GoingViewModel(savedStateHandle: SavedStateHandle): ViewModel(), OnGoToLoc
         descriptionId: Int,
         description: String
     ) {
+        if(status == OnGoToLocationStatusChangedListener.START){
+            robot.sendSerialCommand(Serial.CMD_LCD_TEXT, Serial.getLcdBytes(location))
+        }
         if (status == OnGoToLocationStatusChangedListener.COMPLETE) {
             _back.value = true
         }

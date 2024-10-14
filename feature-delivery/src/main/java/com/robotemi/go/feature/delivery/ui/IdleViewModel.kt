@@ -24,6 +24,7 @@ import com.robotemi.go.core.data.LocationRepository
 import com.robotemi.go.feature.delivery.model.Tray
 import com.robotemi.sdk.Robot
 import com.robotemi.sdk.serial.Serial
+import com.robotemi.sdk.serial.Serial.getLcdColorBytes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -52,6 +53,7 @@ class IdleViewModel @Inject constructor(
                 }
             }
         }
+        lcdScreenInit()
     }
 
     fun setTrayLocation(location: String) {
@@ -94,6 +96,22 @@ class IdleViewModel @Inject constructor(
                 byteArrayOf(tray.trayNumber.toByte(), 0X00, 0X00, 0X00)
             )
         }
+    }
+
+    private fun lcdScreenInit(){
+        robot.sendSerialCommand(
+            Serial.CMD_LCD_TEXT,
+            getLcdColorBytes(byteArrayOf(0x00, 0xff.toByte(), 0xff.toByte(), 0xff.toByte()), target = Serial.LCD.TEXT_0_COLOR)
+        )
+
+        robot.sendSerialCommand(
+            Serial.CMD_LCD_TEXT,
+            getLcdColorBytes(byteArrayOf(0x00, 0X20.toByte(), 0XD1.toByte(), 0X99.toByte()), target = Serial.LCD.TEXT_0_BACKGROUND)
+        )
+    }
+
+    fun setLcdText(){
+        robot.sendSerialCommand(Serial.CMD_LCD_TEXT, Serial.getLcdBytes("Select"))
     }
 
     fun setGoToLocation() {
