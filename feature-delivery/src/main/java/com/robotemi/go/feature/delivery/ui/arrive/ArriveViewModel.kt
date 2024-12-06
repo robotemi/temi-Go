@@ -104,8 +104,8 @@ class ArriveViewModel @Inject constructor(
             Serial.CMD_TRAY_LIGHT,
             byteArrayOf(trayList.first().toByte(), 0X00, 0X00, 0X00)
         )
-        locationList.removeFirst()
-        trayList.removeFirst()
+        locationList.removeAt(0)
+        trayList.removeAt(0)
         if (locationList.isNotEmpty() && trayList.isNotEmpty()) {
             speakTTS(nextLocationSpeech)
             goData = GoData(locationList, trayList)

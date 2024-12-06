@@ -128,12 +128,6 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.setWrongTraySpeech(wrongTraySpeech)
         }
     }
-//
-//    fun setDefaultLcdText(defaultLcdText: String) {
-//        viewModelScope.launch {
-//            userPreferencesRepository.setDefaultLcdText(defaultLcdText)
-//        }
-//    }
 
     fun setShowDialog(key: String, show: Boolean) {
         _uiState.update { it.copy(isShowingDialog = show, currentDialog = key) }
@@ -152,7 +146,6 @@ class SettingsViewModel @Inject constructor(
     fun goToHomeBase(){
         robot.goTo("home base")
     }
-
 }
 
 data class SettingsScreenUiState(

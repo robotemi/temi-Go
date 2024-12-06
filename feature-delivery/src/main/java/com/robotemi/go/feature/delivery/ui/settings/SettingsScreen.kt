@@ -51,7 +51,6 @@ fun SettingsScreen(
         arriveSpeech = uiState.arriveSpeech,
         nextLocationSpeech = uiState.nextLocationSpeech,
         wrongTraySpeech = uiState.wrongTraySpeech,
-//        defaultLcdText = uiState.defaultLcdText,
         isShowingDialog = uiState.isShowingDialog,
         currentDialog = uiState.currentDialog,
         input = uiState.input,
@@ -64,7 +63,6 @@ fun SettingsScreen(
         setArriveSpeech = { viewModel.setArriveSpeech(it) },
         setNextLocationSpeech = { viewModel.setNextLocationSpeech(it) },
         setWrongTraySpeech = { viewModel.setWrongTraySpeech(it) },
-//        setDefaultLcdText = { viewModel.setDefaultLcdText(it) },
         showDialog = { key, show -> viewModel.setShowDialog(key, show) },
         getLocations = { viewModel.getLocations() },
         setInput = { viewModel.setInput(it) },
@@ -87,7 +85,6 @@ internal fun SettingsScreen(
     arriveSpeech: String,
     nextLocationSpeech: String,
     wrongTraySpeech: String,
-//    defaultLcdText: String,
     isShowingDialog: Boolean,
     currentDialog: String,
     input: String,
@@ -100,7 +97,6 @@ internal fun SettingsScreen(
     setArriveSpeech: (String) -> Unit,
     setNextLocationSpeech: (String) -> Unit,
     setWrongTraySpeech: (String) -> Unit,
-//    setDefaultLcdText: (String) -> Unit,
     showDialog: (String, Boolean) -> Unit,
     getLocations: () -> List<String>,
     setInput: (String) -> Unit,
@@ -266,24 +262,6 @@ internal fun SettingsScreen(
                     onChange = { setInput(it) }
                 )
             }
-//
-//            "defaultLcdText" -> {
-//                StringInputDialog(
-//                    modifier = modifier,
-//                    title = stringResource(R.string.default_lcd_text),
-//                    value = input,
-//                    onDismiss = {
-//                        showDialog("defaultLcdText", false)
-//                        setInput("")
-//                    },
-//                    onConfirm = {
-//                        setDefaultLcdText(it)
-//                        setInput("")
-//                        showDialog("defaultLcdText", false)
-//                    },
-//                    onChange = { setInput(it) }
-//                )
-//            }
         }
     }
     Row(modifier = modifier.padding(20.dp)) {
@@ -351,13 +329,6 @@ internal fun SettingsScreen(
                 key = "wrongTraySpeech",
                 showDialog = showDialog
             )
-//            SettingsItem(
-//                modifier = modifier,
-//                title = stringResource(R.string.default_lcd_text),
-//                value = defaultLcdText,
-//                key = "defaultLcdText",
-//                showDialog = showDialog
-//            )
             Button(onClick = { tareTrays() }) {
                 Text(stringResource(R.string.tare_trays), fontSize = 40.sp)
             }

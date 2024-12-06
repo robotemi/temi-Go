@@ -81,7 +81,7 @@ class IdleViewModel @Inject constructor(
 //        }
     }
 
-    suspend fun initLocation(){
+     fun initLocation(){
         viewModelScope.launch {
             locationRepository.locations.collectLatest { list ->
                 _uiState.update { currentState ->
