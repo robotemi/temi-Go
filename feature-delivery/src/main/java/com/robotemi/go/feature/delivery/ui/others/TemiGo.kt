@@ -1,4 +1,4 @@
-package com.robotemi.go.feature.delivery.ui
+package com.robotemi.go.feature.delivery.ui.others
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image

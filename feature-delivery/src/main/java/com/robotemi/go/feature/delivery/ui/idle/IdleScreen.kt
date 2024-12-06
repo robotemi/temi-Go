@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.robotemi.go.feature.delivery.ui
+package com.robotemi.go.feature.delivery.ui.idle
 
 
-import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.VectorConverter
@@ -49,7 +48,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -65,10 +63,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.robotemi.go.core.ui.MyApplicationTheme
 import com.robotemi.go.feature.delivery.model.Tray
+import com.robotemi.go.feature.delivery.ui.others.PasswordDialog
+import com.robotemi.go.feature.delivery.ui.others.TemiGo
 import com.robotemi.go.feature.mymodel.R
+import com.robotemi.go.feature.navigation.GoingScreen
+import com.robotemi.go.feature.navigation.SettingsScreen
 
 
 @Composable
@@ -77,16 +80,29 @@ fun IdleScreen(
     viewModel: IdleViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val goToSettings by viewModel.goToSettings.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = goToSettings) {
+        if (goToSettings) {
+            navController.navigate(SettingsScreen)
+            viewModel.reset()
+        }
+    }
 
     LaunchedEffect(Unit) {
+        viewModel.initLocation()
+        viewModel.initLED()
         viewModel.setLcdText()
+        viewModel.reset()
     }
 
     IdleScreen(
         modifier = modifier,
         locations = uiState.locations,
         map = uiState.tray,
+        passwordPopUp = uiState.passwordPopUp,
+        passwordInput = uiState.passwordInput,
         currentSelectedTray = uiState.currentSelectedTray,
         setTrayLocation = { location: String ->
             viewModel.setTrayLocation(
@@ -95,10 +111,13 @@ fun IdleScreen(
         },
         removeTrayLocation = { viewModel.removeTrayLocation(it) },
         setCurrentSelectedTray = { viewModel.setCurrentSelectedTray(it) },
+        setPasswordPopUp = { viewModel.setPasswordPopUp(it) },
+        setPasswordInput = { viewModel.setPasswordInput(it) },
+        checkPassword = { viewModel.checkPassword(it) },
         go = {
-            viewModel.setGoToLocation()
-            Log.d("DeliveryScreen", "Going to location: ${viewModel.goToLocation}")
-            navController.navigate("going/${viewModel.goToLocation}")
+//            viewModel.setGoToLocation()
+            viewModel.startSpeech()
+            navController.navigate(GoingScreen(viewModel.goData))
         },
     )
 }
@@ -108,14 +127,29 @@ fun IdleScreen(
 internal fun IdleScreen(
     modifier: Modifier,
     locations: List<String>,
+    passwordPopUp: Boolean,
+    passwordInput: String,
     setTrayLocation: (location: String) -> Unit,
     setCurrentSelectedTray: (tray: Tray?) -> Unit,
     removeTrayLocation: (tray: Tray) -> Unit,
+    setPasswordPopUp: (Boolean) -> Unit,
+    setPasswordInput: (String) -> Unit,
+    checkPassword: (String) -> Unit,
     map: Map<Tray, String?>,
     currentSelectedTray: Tray?,
     go: () -> Unit
 ) {
-
+    if (passwordPopUp) {
+        PasswordDialog(
+            modifier = modifier
+                .width(500.dp)
+                .height(600.dp),
+            passwordInput = passwordInput,
+            onChange = setPasswordInput,
+            onConfirm = checkPassword,
+            onDismiss = { setPasswordPopUp(false) }
+        )
+    }
     Row {
         TemiGo(
             onSelect = setCurrentSelectedTray,
@@ -128,8 +162,27 @@ internal fun IdleScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 140.dp, top = 130.dp)
+                .padding(start = 140.dp, top = 10.dp),
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.settings),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(end = 50.dp)
+                    .align(Alignment.End)
+                    .clickable(indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
+                        setPasswordPopUp(true)
+                    }
+            )
+            Text(
+                text = stringResource(R.string.select_a_tray_then_assign_a_location),
+                modifier = Modifier.padding(bottom = 10.dp),
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
             LocationGrid(
                 locations = locations,
                 onClick = setTrayLocation,
@@ -263,7 +316,12 @@ private fun PortraitPreview() {
             removeTrayLocation = {},
             map = mapOf(),
             currentSelectedTray = null,
-            go = {}
+            go = {},
+            setPasswordPopUp = {},
+            setPasswordInput = {},
+            checkPassword = {},
+            passwordPopUp = false,
+            passwordInput = ""
         )
     }
 }

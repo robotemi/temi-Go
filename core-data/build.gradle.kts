@@ -54,6 +54,7 @@ dependencies {
 
     // Arch Components
     implementation(libs.hilt.android)
+    implementation(libs.androidx.preference.ktx)
     kapt(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
@@ -63,4 +64,6 @@ dependencies {
     // Local tests: jUnit, coroutines, Android runner
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    implementation (libs.androidx.datastore.preferences)
 }

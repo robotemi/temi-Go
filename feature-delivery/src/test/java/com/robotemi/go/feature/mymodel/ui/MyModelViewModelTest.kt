@@ -19,14 +19,8 @@ package com.robotemi.go.feature.mymodel.ui
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import com.robotemi.go.core.data.LocationRepository
-import com.robotemi.go.feature.delivery.ui.IdleScreenUiState
-import com.robotemi.go.feature.delivery.ui.IdleViewModel
 
 /**
  * Example local unit test, which will execute on the development machine (host).
