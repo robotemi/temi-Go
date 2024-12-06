@@ -62,7 +62,7 @@ class RealLocationRepository @Inject constructor(
 
     override fun onRobotReady(isReady: Boolean) {
         if (isReady) {
-            val locations = Robot.getInstance().locations
+            val locations = Robot.getInstance().locations.filter { it != "home base" }.sorted()
             Log.d("LOCATIONS", "initial locations $locations")
             flow.value = locations
 

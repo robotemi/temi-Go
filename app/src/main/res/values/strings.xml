@@ -16,4 +16,5 @@
 
 <resources>
     <string name="app_name">temi Go</string>
+      <string name="title_core_preferences">Preferences</string>
 </resources>

@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -55,7 +56,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-data"))
+    api (project(":core-data"))
     implementation(project(":core-ui"))
     androidTestImplementation(project(":core-testing"))
 
@@ -96,4 +97,13 @@ dependencies {
     // Instrumented tests: jUnit rules and runners
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    implementation(libs.androidx.preference.ktx)
+    implementation (libs.androidx.datastore.preferences)
 }
